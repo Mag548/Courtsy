@@ -85,21 +85,82 @@ h1, h2, h3, h4 {
   height: 100%;
 }
 
-/* Mobile — lock body so the map can't cause page scroll ─────────────────── */
+/* Landing page — allow normal scrolling everywhere except the map app ──── */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* App route only — lock body so map panning can't scroll the page ───────── */
 @media (max-width: 767px) {
-  html {
+  body.map-app-active {
     overflow: hidden;
     height: 100%;
-    overscroll-behavior: none;
-  }
-  body {
-    overflow: hidden;
-    height: 100%;
-    overscroll-behavior: none;
-    /* Prevent iOS rubber-band scroll */
     position: fixed;
     width: 100%;
   }
+}
+
+/* ─── Landing page orb animations ─────────────────────────────────────────── */
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(60px, -80px) scale(1.08); }
+  66%       { transform: translate(-40px, 60px) scale(0.96); }
+}
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  40%       { transform: translate(-70px, 50px) scale(1.05); }
+  70%       { transform: translate(50px, -60px) scale(0.97); }
+}
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%       { transform: translate(40px, 80px) scale(1.1); }
+}
+.orb-1 { animation: orb-drift-1 18s ease-in-out infinite; }
+.orb-2 { animation: orb-drift-2 22s ease-in-out infinite; }
+.orb-3 { animation: orb-drift-3 15s ease-in-out infinite; }
+
+@keyframes hero-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-in { animation: hero-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes badge-pop {
+  from { opacity: 0; transform: scale(0.88) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.badge-pop { animation: badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes cta-glow-pulse {
+  0%, 100% { box-shadow: 0 0 30px hsl(142 72% 45% / 0.45), 0 0 80px hsl(142 72% 45% / 0.2); }
+  50%       { box-shadow: 0 0 50px hsl(142 72% 45% / 0.7), 0 0 120px hsl(142 72% 45% / 0.35); }
+}
+.cta-glow { animation: cta-glow-pulse 3s ease-in-out infinite; }
+
+@keyframes float-badge {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+.float-slow { animation: float-badge 5s ease-in-out infinite; }
+.float-mid  { animation: float-badge 6.5s ease-in-out infinite 1.2s; }
+.float-fast { animation: float-badge 4.5s ease-in-out infinite 0.6s; }
+
+@keyframes shimmer-slide {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg,
+    hsl(142 72% 80%) 0%,
+    hsl(160 100% 90%) 30%,
+    hsl(142 72% 60%) 50%,
+    hsl(142 72% 80%) 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-slide 4s linear infinite;
 }
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
