@@ -1,26 +1,186 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 4%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 96%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 142 72% 45%;
+  --primary-foreground: 0 0% 4%;
+  --secondary: 0 0% 13%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 13%;
+  --muted-foreground: 0 0% 58%;
+  --accent: 142 72% 45%;
+  --accent-foreground: 0 0% 4%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 96%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+  --ring: 142 72% 45%;
+  --radius: 1rem;
+  --chart-1: 142 72% 45%;
+  --chart-2: 199 89% 48%;
+  --chart-3: 262 83% 58%;
+  --chart-4: 43 96% 56%;
+  --chart-5: 0 84% 60%;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  border-color: hsl(var(--border));
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  /* Soft ambient depth — subtle radial glows for a premium consumer feel */
+  background-image:
+    radial-gradient(
+      900px circle at 12% -10%,
+      hsl(142 72% 45% / 0.08),
+      transparent 55%
+    ),
+    radial-gradient(
+      800px circle at 100% 0%,
+      hsl(199 89% 48% / 0.06),
+      transparent 50%
+    );
+  background-attachment: fixed;
+}
+
+/* Typography ─────────────────────────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  letter-spacing: -0.02em;
+}
+
+/* Smooth scrollbar ───────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(0 0% 22%);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(0 0% 32%);
+}
+
+/* Map container ──────────────────────────────────────────────────────────── */
+.map-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Animations ───────────────────────────────────────────────────────────── */
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.pulse-green {
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+  animation: fade-in-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fade-in {
+  animation: fade-in 0.35s ease both;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ─── Text & gradients ─────────────────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(120deg, hsl(142 72% 52%), hsl(160 84% 50%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-primary {
+  background: linear-gradient(135deg, hsl(142 72% 46%), hsl(158 84% 42%));
+}
+
+/* ─── Elevated surfaces ────────────────────────────────────────────────────── */
+.surface {
+  background: hsl(0 0% 7% / 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid hsl(0 0% 100% / 0.07);
+  border-radius: 1.25rem;
+}
+
+.surface-elevated {
+  background: linear-gradient(
+    180deg,
+    hsl(0 0% 10% / 0.9),
+    hsl(0 0% 7% / 0.9)
+  );
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid hsl(0 0% 100% / 0.08);
+  box-shadow:
+    0 1px 0 hsl(0 0% 100% / 0.05) inset,
+    0 20px 40px -24px hsl(0 0% 0% / 0.8);
+  border-radius: 1.5rem;
+}
+
+/* Interactive lift for cards / list rows ──────────────────────────────────── */
+.lift {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+.lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px -20px hsl(0 0% 0% / 0.7);
+}
+
+/* ─── Frosted black surfaces for popups, dropdowns, toasts ─────────────────── */
+.frosted-overlay {
+  background: rgb(0 0 0 / 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.frosted-surface {
+  background: rgb(9 9 11 / 0.85);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
 }
