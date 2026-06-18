@@ -454,7 +454,7 @@ export default function QueuePage() {
       )}
 
       {/* ── Main content ── */}
-      <div className="fade-in-up flex-1 flex flex-col items-center justify-start px-4 py-8 gap-6 max-w-md mx-auto w-full">
+      <div className="fade-in-up flex-1 flex flex-col items-center justify-start px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] gap-6 max-w-md mx-auto w-full">
         {/* Status badge */}
         <Badge
           className={`text-sm px-4 py-1.5 rounded-full font-medium ${

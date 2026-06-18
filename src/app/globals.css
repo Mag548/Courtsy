@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --mobile-nav-h: 68px;
   --background: 0 0% 4%;
   --foreground: 0 0% 96%;
   --card: 0 0% 8%;
@@ -82,6 +83,14 @@ h1, h2, h3, h4 {
 .map-container {
   width: 100%;
   height: 100%;
+}
+
+/* Mobile — prevent body scroll bounce when sheet is open ─────────────────── */
+@media (max-width: 767px) {
+  html, body {
+    overscroll-behavior: none;
+    height: 100%;
+  }
 }
 
 /* ─── Animations ───────────────────────────────────────────────────────────── */
