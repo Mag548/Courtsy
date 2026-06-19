@@ -1,0 +1,773 @@
+[
+  {
+    "groupKey": "1-48",
+    "name": "Wallace Park",
+    "address": "245 Reynolds St, Oakville, Ontario",
+    "latitude": 43.45171423458304,
+    "longitude": -79.67111131954253,
+    "court_type": "tennis",
+    "num_courts": 5,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Wallace Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "3-05",
+    "name": "Glen Abbey Park",
+    "address": "1415 Thrid Line, Oakville, Ontario",
+    "latitude": 43.43660164218356,
+    "longitude": -79.74026931228423,
+    "court_type": "both",
+    "num_courts": 6,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Glen Abbey Park Tennis Courts",
+      "Glen Abbey Park Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-03",
+    "name": "Castlefield Park",
+    "address": "220-238 River Oaks Blvd, Oakville, Ontario",
+    "latitude": 43.47461652875264,
+    "longitude": -79.70950303964449,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Castlefield Park Multi-Lined Pickleball and Tennis Court",
+      "Castlefield Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-34",
+    "name": "Sunningdale Ps",
+    "address": "1406 Oxford Ave, Oakville, Ontario",
+    "latitude": 43.457609544034575,
+    "longitude": -79.71299475874433,
+    "court_type": "both",
+    "num_courts": 1,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Sunningdale Ps Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "3-01",
+    "name": "Aldercrest Park",
+    "address": "1454 Nottinghill Gate, Oakville, Ontario",
+    "latitude": 43.44419836632504,
+    "longitude": -79.73203425758346,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Aldercrest Park Tennis Courts",
+      "Aldercrest Park  Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-19",
+    "name": "Leighland Park",
+    "address": "301 Leighland Ave, Oakville, Ontario",
+    "latitude": 43.46023775067021,
+    "longitude": -79.69148565086815,
+    "court_type": "tennis",
+    "num_courts": 1,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Leighland Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-57",
+    "name": "River Glen",
+    "address": "376 River Glen Rd, Oakville, Ontario",
+    "latitude": 43.46748988797638,
+    "longitude": -79.73648316038536,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "River Glen Park Tennis Courts",
+      "River Glen Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "1-21",
+    "name": "Deer Run",
+    "address": "2406 Deer Run Ave, Oakville, Ontario",
+    "latitude": 43.48371339566731,
+    "longitude": -79.64137365532125,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Deer Run Multi-Lined Pickleball and Tennis Court",
+      "Deer Run Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-14",
+    "name": "Holton Heights Park",
+    "address": "1315 Holton Heights Dr, Oakville, Ontario",
+    "latitude": 43.47337953208391,
+    "longitude": -79.68967966119973,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Holton Heights Park Multi-Lined Pickleball and Tennis Court",
+      "Holton Heights Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "1-38",
+    "name": "Maplegrove Park",
+    "address": "2243 Devon Rd, Oakville, Ontario",
+    "latitude": 43.47917356248314,
+    "longitude": -79.64252108286232,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Maplegrove Park Tennis Courts",
+      "Maplegrove Park Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "3-41",
+    "name": "Bloomfield Park",
+    "address": "2531 West Oak Trails Blvd, Oakville, Ontario",
+    "latitude": 43.444683974718885,
+    "longitude": -79.7462181817889,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Bloomfield Park Multi-Lined Pickleball and Tennis Court",
+      "Bloomfield Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "4-22",
+    "name": "Forster Park",
+    "address": "100 North Forster Park Dr, Oakville, Ontario",
+    "latitude": 43.44911624183724,
+    "longitude": -79.6772519859649,
+    "court_type": "tennis",
+    "num_courts": 1,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Forster Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-10",
+    "name": "Glenashton",
+    "address": "1051 Glenashton Drive, Oakville, Ontario",
+    "latitude": 43.4862881101941,
+    "longitude": -79.7020288232166,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Glenashton Tennis Courts",
+      "Glenashton Park Pickleball Court"
+    ]
+  },
+  {
+    "groupKey": "3-09",
+    "name": "Heritage Way",
+    "address": "1659 Heritage Way, Oakville, Ontario",
+    "latitude": 43.431648403546944,
+    "longitude": -79.74109925720421,
+    "court_type": "both",
+    "num_courts": 6,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Heritage Way Multi-Lined Pickleball and Tennis Court",
+      "Heritage Way Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-48",
+    "name": "Valleybrook Park",
+    "address": "1150 Valleybrook Dr, Oakville, Ontario",
+    "latitude": 43.48699102134403,
+    "longitude": -79.69379705413685,
+    "court_type": "both",
+    "num_courts": 3,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 3,
+    "arcgis_names": [
+      "Valleybrook Park Multi-Lined Pickleball and Tennis Court",
+      "Valleybrook Park Tennis Court",
+      "Valleybrook Park Pickleball Court"
+    ]
+  },
+  {
+    "groupKey": "4-51",
+    "name": "Sovereign Park",
+    "address": "141 East St, Oakville, Ontario",
+    "latitude": 43.40049086043413,
+    "longitude": -79.7078318900888,
+    "court_type": "both",
+    "num_courts": 1,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Sovereign Park Multi-Lined Pickleball (2) and Tennis Court "
+    ]
+  },
+  {
+    "groupKey": "3-24",
+    "name": "Windrush Park",
+    "address": "1225 Windrush Dr, Oakville, Ontario",
+    "latitude": 43.43772434794545,
+    "longitude": -79.7284660390217,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Windrush Park Tennis Courts",
+      "Windrush Park Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "4-40",
+    "name": "Queen Elizabeth Park",
+    "address": "2310 Bridge Road, Oakville, Ontario",
+    "latitude": 43.4055629265112,
+    "longitude": -79.72045110851968,
+    "court_type": "tennis",
+    "num_courts": 8,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Queen Elizabeth Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-21",
+    "name": "Litchfield Park",
+    "address": "1435 White Oaks Blvd, Oakville, Ontario",
+    "latitude": 43.47418409768824,
+    "longitude": -79.69761112434381,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Litchfield Park Tennis Courts",
+      "Litchfield Park Multi-Lined Pickleball and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "4-28",
+    "name": "Hopedale Park",
+    "address": "1436 Tansley Dr, Oakville, Ontario",
+    "latitude": 43.41537766893618,
+    "longitude": -79.70636395293965,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Hopedale Park Tennis Court",
+      "Hopedale Park Pickleball Court"
+    ]
+  },
+  {
+    "groupKey": "1-31",
+    "name": "Jonathan Park",
+    "address": "1180 Jonathan Cres, Oakville, Ontario",
+    "latitude": 43.49865028196635,
+    "longitude": -79.65494995076853,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Jonathan Park Multi-Lined Pickleball and Tennis Court",
+      "Jonathan Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "4-24",
+    "name": "Glen Oak Park",
+    "address": "300 Glen Oak Dr, Oakville, Ontario",
+    "latitude": 43.43206923000623,
+    "longitude": -79.69592590916747,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Glen Oak Park Multi-Lined Pickleball and Tennis Court",
+      "Glen Oak Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-43",
+    "name": "Sheridan Hills",
+    "address": "1440 Grosvenor St, Oakville, Ontario",
+    "latitude": 43.48062699462829,
+    "longitude": -79.69033120073645,
+    "court_type": "tennis",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Sheridan Hills Tennis Courts"
+    ]
+  },
+  {
+    "groupKey": "1-36",
+    "name": "Lawson Park",
+    "address": "146 Morrison Rd, Oakville, Ontario",
+    "latitude": 43.460375994858495,
+    "longitude": -79.65444880483882,
+    "court_type": "tennis",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Lawson Park Tennis Courts"
+    ]
+  },
+  {
+    "groupKey": "4-48",
+    "name": "Shell Park",
+    "address": "3307 Lakeshore Rd W, Oakville, Ontario",
+    "latitude": 43.37993964929888,
+    "longitude": -79.72250005750114,
+    "court_type": "both",
+    "num_courts": 3,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Shell Park Multi-Lined Pickleball (3) and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "3-18",
+    "name": "Old Abbey Park",
+    "address": "1110 Old Abbey Lane, Oakville, Ontario",
+    "latitude": 43.444619570071964,
+    "longitude": -79.71047343014918,
+    "court_type": "both",
+    "num_courts": 1,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Old Abbey Park Multi-Lined Pickleball (2) and Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "2-41",
+    "name": "River Oaks Park",
+    "address": "2400 Sixth Line, Oakville, Ontario",
+    "latitude": 43.469244911102436,
+    "longitude": -79.72570973788554,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "River Oaks Park Multi-Lined Pickleball and Tennis Court",
+      "River Oaks Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "6-27",
+    "name": "Fowley Park",
+    "address": "95 Fowley Dr, Oakville, Ontario",
+    "latitude": 43.486340579688246,
+    "longitude": -79.73161918488702,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Fowley Park Pickleball Courts",
+      "Fowley Park Tennis Courts"
+    ]
+  },
+  {
+    "groupKey": "6-31",
+    "name": "William Rose Park",
+    "address": "455 Wheat Boom Dr, Oakville, Ontario",
+    "latitude": 43.4939705594365,
+    "longitude": -79.7207097065315,
+    "court_type": "both",
+    "num_courts": 6,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "William Rose Park Pickleball Courts",
+      "William Rose Park Tennis Courts"
+    ]
+  },
+  {
+    "groupKey": "6-19",
+    "name": "George Savage Park",
+    "address": "3200 George Savage Ave, Oakville, Ontario",
+    "latitude": 43.473569337634615,
+    "longitude": -79.74713318818144,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "George Savage Park Tennis Courts",
+      "George Savage Park Pickleball Courts"
+    ]
+  },
+  {
+    "groupKey": "3-61",
+    "name": "West Oak Trails",
+    "address": "2860 West Oak Trails Blvd., Oakville, Ontario",
+    "latitude": 43.43216543812309,
+    "longitude": -79.75391203232027,
+    "court_type": "pickleball",
+    "num_courts": 1,
+    "amenities": [
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "West Oak Trails Pickleball Court"
+    ]
+  },
+  {
+    "groupKey": "4-57",
+    "name": "Trafalgar Park",
+    "address": "133 Rebecca Street, Oakville, Ontario",
+    "latitude": 43.440172060020515,
+    "longitude": -79.67884557536038,
+    "court_type": "both",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Trafalgar Park Multi-line Pickleball and Tennis Court",
+      "Trafalgar Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "1-09",
+    "name": "Bishopstoke Park",
+    "address": "1322 Bishopstoke Way, Oakville, Ontario",
+    "latitude": 43.497967090775354,
+    "longitude": -79.66505133962136,
+    "court_type": "tennis",
+    "num_courts": 3,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Bishopstoke Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "1-03",
+    "name": "Ardleigh Park",
+    "address": "135 Maple Grove Dr, Oakville, Ontario",
+    "latitude": 43.47027087576102,
+    "longitude": -79.64406499299201,
+    "court_type": "tennis",
+    "num_courts": 2,
+    "amenities": [
+      "Tennis",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 1,
+    "arcgis_names": [
+      "Ardleigh Park Tennis Court"
+    ]
+  },
+  {
+    "groupKey": "saw whet",
+    "name": "Saw Whet",
+    "address": "2360 Saw Whet Boulevard, Oakville, Ontario",
+    "latitude": 43.420811559625676,
+    "longitude": -79.74660430817376,
+    "court_type": "both",
+    "num_courts": 3,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "Saw Whet Pickleball Court",
+      "Saw Whet Tennis Courts"
+    ]
+  },
+  {
+    "groupKey": "6-50",
+    "name": "McDuffe Park",
+    "address": "3483 Sixth Line, Oakville, Ontario",
+    "latitude": 43.49111593880094,
+    "longitude": -79.74380902622883,
+    "court_type": "both",
+    "num_courts": 4,
+    "amenities": [
+      "Tennis",
+      "Pickleball",
+      "Outdoor",
+      "Free"
+    ],
+    "municipality": "Oakville",
+    "source": "oakville-arcgis",
+    "arcgis_feature_count": 2,
+    "arcgis_names": [
+      "McDuffe Park Pickleball Court",
+      "McDuffe Park Tennis Court"
+    ]
+  }
+]

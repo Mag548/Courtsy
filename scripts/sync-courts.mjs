@@ -80,7 +80,7 @@ async function geocode(entry) {
 }
 
 function courtType(sport) {
-  if (sport === "Tennis/Pickleball") return "tennis_pickleball";
+  if (sport === "Tennis/Pickleball") return "both";
   if (sport === "Pickleball") return "pickleball";
   return "tennis";
 }
