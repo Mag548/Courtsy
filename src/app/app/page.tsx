@@ -90,6 +90,93 @@ export default function HomePage() {
   const dragStartSheet = useRef<"hidden" | "peek" | "open">("peek");
   const didSwipeSheet = useRef(false);
 
+  // Peek sheet slides down while the map is touched, then eases back to peek
+  const [mapSheetDismissed, setMapSheetDismissed] = useState(false);
+  const [sheetMotion, setSheetMotion] = useState<"default" | "map-push" | "map-restore">("default");
+  const mapTouchCount = useRef(0);
+  const mapRestoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mapTouchOrigin = useRef<{ x: number; y: number } | null>(null);
+  const mapGestureActive = useRef(false);
+
+  const clearMapRestoreTimer = useCallback(() => {
+    if (mapRestoreTimer.current) {
+      clearTimeout(mapRestoreTimer.current);
+      mapRestoreTimer.current = null;
+    }
+  }, []);
+
+  const dismissSheetForMap = useCallback(() => {
+    if (mapGestureActive.current) return;
+    mapGestureActive.current = true;
+    clearMapRestoreTimer();
+    setSheetMotion("map-push");
+    setMapSheetDismissed(true);
+  }, [clearMapRestoreTimer]);
+
+  const handleMapTouchStart = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      if (mobileSheet !== "peek") return;
+      mapTouchCount.current += 1;
+      if (event.touches.length === 1 && !mapTouchOrigin.current) {
+        mapTouchOrigin.current = {
+          x: event.touches[0].clientX,
+          y: event.touches[0].clientY,
+        };
+      }
+      if (event.touches.length >= 2) dismissSheetForMap();
+    },
+    [mobileSheet, dismissSheetForMap]
+  );
+
+  const handleMapTouchMove = useCallback(
+    (event: React.TouchEvent<HTMLDivElement>) => {
+      if (mobileSheet !== "peek" || mapGestureActive.current) return;
+      if (event.touches.length >= 2) {
+        dismissSheetForMap();
+        return;
+      }
+      const origin = mapTouchOrigin.current;
+      if (!origin) return;
+      const touch = event.touches[0];
+      const moved = Math.hypot(
+        touch.clientX - origin.x,
+        touch.clientY - origin.y
+      );
+      if (moved >= 10) dismissSheetForMap();
+    },
+    [mobileSheet, dismissSheetForMap]
+  );
+
+  const handleMapTouchEnd = useCallback(() => {
+    if (mobileSheet !== "peek") return;
+    mapTouchCount.current = Math.max(0, mapTouchCount.current - 1);
+    if (mapTouchCount.current !== 0) return;
+
+    mapTouchOrigin.current = null;
+    if (!mapGestureActive.current) return;
+    mapGestureActive.current = false;
+
+    clearMapRestoreTimer();
+    mapRestoreTimer.current = setTimeout(() => {
+      setSheetMotion("map-restore");
+      setMapSheetDismissed(false);
+      mapRestoreTimer.current = null;
+    }, 750);
+  }, [mobileSheet, clearMapRestoreTimer]);
+
+  useEffect(() => {
+    if (mobileSheet !== "peek") {
+      setMapSheetDismissed(false);
+      setSheetMotion("default");
+      mapTouchCount.current = 0;
+      mapTouchOrigin.current = null;
+      mapGestureActive.current = false;
+      clearMapRestoreTimer();
+    }
+  }, [mobileSheet, clearMapRestoreTimer]);
+
+  useEffect(() => () => clearMapRestoreTimer(), [clearMapRestoreTimer]);
+
   // ── Active count ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) { setActiveCount(0); return; }
@@ -443,11 +530,12 @@ export default function HomePage() {
 
         {/* ── Map (clipped above bottom nav zone) ── */}
         <div
-          className="absolute inset-x-0 top-0 z-0 bg-background"
-          style={{
-            bottom: "var(--mobile-nav-h)",
-            touchAction: "pan-x pan-y",
-          }}
+          className="absolute inset-x-0 top-0 z-0 bg-background touch-none"
+          style={{ bottom: "var(--mobile-nav-h)" }}
+          onTouchStart={handleMapTouchStart}
+          onTouchMove={handleMapTouchMove}
+          onTouchEnd={handleMapTouchEnd}
+          onTouchCancel={handleMapTouchEnd}
         >
           {mapEl}
         </div>
@@ -486,21 +574,38 @@ export default function HomePage() {
           }
         </button>
 
-        {/* ── Bottom sheet ── */}
+        {/* ── Bottom sheet (pointer-events-none shell so map stays draggable in peek) ── */}
         <div
-          className="mobile-sheet absolute left-0 right-0 z-30 flex flex-col max-w-2xl mx-auto bottom-sheet-transition"
+          className="mobile-sheet absolute left-0 right-0 z-30 flex flex-col justify-end max-w-2xl mx-auto pointer-events-none"
           style={{
             top: "var(--mobile-header-h)",
             bottom: "var(--mobile-nav-h)",
-            transform:
-              mobileSheet === "open"
-                ? "translateY(0)"
-                : mobileSheet === "peek"
-                ? "translateY(calc(100% - 200px))"
-                : "translateY(100%)",
           }}
         >
-          <div className="flex flex-col h-full rounded-t-[24px] border border-white/10 border-b-0 bg-surface-container-lowest/95 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
+          <div
+            className={cn(
+              "pointer-events-auto flex flex-col rounded-t-[24px] border border-white/10 border-b-0 bg-surface-container-lowest/95 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.5)] overflow-hidden",
+              sheetMotion === "map-push"
+                ? "bottom-sheet-map-push"
+                : sheetMotion === "map-restore"
+                ? "bottom-sheet-map-restore"
+                : "bottom-sheet-transition"
+            )}
+            style={{
+              height: mobileSheet === "open" ? "100%" : "200px",
+              transform:
+                mobileSheet === "hidden" ||
+                (mobileSheet === "peek" && mapSheetDismissed)
+                  ? "translateY(100%)"
+                  : "translateY(0)",
+            }}
+            onTransitionEnd={(event) => {
+              if (event.propertyName !== "transform") return;
+              if (!mapSheetDismissed && sheetMotion === "map-restore") {
+                setSheetMotion("default");
+              }
+            }}
+          >
             {/* Drag handle — large touch target, stays below app header */}
             <button
               type="button"

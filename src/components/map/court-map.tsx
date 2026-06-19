@@ -227,6 +227,9 @@ export function CourtMap({
       streetViewControl: false,
       fullscreenControl: true,
       zoomControl: true,
+      gestureHandling: "greedy",
+      isFractionalZoomEnabled: true,
+      draggable: true,
     });
 
     mapInstanceRef.current = map;
@@ -413,7 +416,7 @@ export function CourtMap({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapRef} className="w-full h-full" />
+      <div ref={mapRef} className="w-full h-full touch-none select-none" />
 
       {directionsTarget && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 frosted-surface rounded-2xl px-4 py-2.5 shadow-xl border border-white/[0.08]">
