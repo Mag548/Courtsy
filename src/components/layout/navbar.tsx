@@ -62,7 +62,7 @@ export function Navbar() {
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Brand pill */}
         <Link
-          href="/"
+          href="/app"
           className="group flex items-center gap-2.5 rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-xl px-3 py-2 pr-4 transition-all hover:border-white/15 hover:bg-white/[0.06]"
         >
           <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">

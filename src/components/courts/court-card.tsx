@@ -36,6 +36,13 @@ import { toast } from "sonner";
 import { AuthModal } from "@/components/auth/auth-modal";
 import QRCode from "react-qr-code";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { CourtActivityChart } from "@/components/courts/court-activity-chart";
+import { useCourtTraffic } from "@/hooks/use-court-traffic";
+import {
+  estimateWaitMinutes,
+  estimateWaitForPosition,
+  formatWaitMinutes,
+} from "@/lib/court-traffic";
 
 interface CourtCardProps {
   court: CourtWithQueue;
@@ -85,12 +92,23 @@ function QueueEntryRow({
   entry,
   index,
   isCurrentUser,
+  numCourts,
+  hasActiveSession,
+  reportedOccupied,
 }: {
   entry: QueueEntry & { user?: { full_name: string | null; avatar_url: string | null } };
   index: number;
   isCurrentUser: boolean;
+  numCourts: number;
+  hasActiveSession: boolean;
+  reportedOccupied: number;
 }) {
-  const waitMins = index * 30;
+  const waitMins = estimateWaitForPosition(
+    index + 1,
+    numCourts,
+    hasActiveSession,
+    reportedOccupied
+  );
 
   return (
     <div
@@ -123,15 +141,15 @@ function QueueEntryRow({
         </p>
       </div>
       {waitMins > 0 && (
-        <span className="text-xs text-muted-foreground">~{waitMins}m</span>
+        <span className="text-xs text-muted-foreground">{formatWaitMinutes(waitMins)}</span>
       )}
     </div>
   );
 }
 
 // ── Traffic report panel ──────────────────────────────────────────────────────
-function TrafficReportPanel({ courtId, numCourts, onClose }: {
-  courtId: string; numCourts: number; onClose: () => void;
+function TrafficReportPanel({ courtId, numCourts, onClose, onSubmitted }: {
+  courtId: string; numCourts: number; onClose: () => void; onSubmitted?: () => void;
 }) {
   const { user } = useAuth();
   const supabase = createClient();
@@ -151,6 +169,7 @@ function TrafficReportPanel({ courtId, numCourts, onClose }: {
     if (error) { toast.error("Failed to submit report"); return; }
     setSubmitted(true);
     toast.success("Thanks for reporting court traffic!");
+    onSubmitted?.();
     setTimeout(onClose, 1500);
   };
 
@@ -201,35 +220,6 @@ function TrafficReportPanel({ courtId, numCourts, onClose }: {
   );
 }
 
-// ── Recent traffic indicator ──────────────────────────────────────────────────
-function TrafficBadge({ courtId }: { courtId: string }) {
-  const supabase = createClient();
-  const [occupancy, setOccupancy] = useState<number | null>(null);
-
-  useEffect(() => {
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
-    supabase
-      .from("court_traffic_reports")
-      .select("occupied_courts, reported_at")
-      .eq("court_id", courtId)
-      .gt("reported_at", twoHoursAgo)
-      .order("reported_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setOccupancy(data.occupied_courts);
-      });
-  }, [courtId, supabase]);
-
-  if (occupancy === null) return null;
-  return (
-    <span className="text-xs px-2.5 py-1 rounded-full bg-yellow-500/15 border border-yellow-500/25 text-yellow-400 flex items-center gap-1">
-      <BarChart2 className="w-3 h-3" />
-      {occupancy === 0 ? "Reported: all free" : `Reported: ${occupancy} occupied`}
-    </span>
-  );
-}
-
 export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
   const { user } = useAuth();
   const router = useRouter();
@@ -247,12 +237,20 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
   const [showTrafficReport, setShowTrafficReport] = useState(false);
   const [showQR, setShowQR] = useState(false);
   const supabase = createClient();
+  const { recentOccupied, hourlyActivity, totalReports, refetch: refetchTraffic } =
+    useCourtTraffic(court.id);
 
   const waitingEntries = court.queue?.queue_entries?.filter(
     (e) => e.status === "waiting"
   ) ?? [];
 
-  const estimatedWait = waitingEntries.length * 30;
+  const hasActiveSession = !!court.active_session;
+  const estimatedWait = estimateWaitMinutes({
+    numCourts: court.num_courts,
+    queueLength: waitingEntries.length,
+    hasActiveSession,
+    reportedOccupied: recentOccupied,
+  });
 
   const fetchUserEntry = useCallback(async () => {
     if (!user) return;
@@ -418,9 +416,6 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
           )}
         </div>
 
-        {/* Recent traffic indicator */}
-        <TrafficBadge courtId={court.id} />
-
         {/* QR Code Dialog */}
         <Dialog open={showQR} onOpenChange={setShowQR}>
           <DialogContent className="sm:max-w-[320px] p-6 rounded-3xl border-white/[0.08] bg-[#0a0a0a]">
@@ -459,6 +454,7 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
               courtId={court.id}
               numCourts={court.num_courts}
               onClose={() => setShowTrafficReport(false)}
+              onSubmitted={refetchTraffic}
             />
           </DialogContent>
         </Dialog>
@@ -485,10 +481,17 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
               <span className="text-xs">Wait</span>
             </div>
             <p className="text-xl font-bold">
-              {estimatedWait === 0 ? "~0m" : `~${estimatedWait}m`}
+              {formatWaitMinutes(estimatedWait)}
             </p>
           </div>
         </div>
+
+        <CourtActivityChart
+          hourlyActivity={hourlyActivity}
+          totalReports={totalReports}
+          recentOccupied={recentOccupied}
+          numCourts={court.num_courts}
+        />
 
         {/* Active Session Timer */}
         {court.active_session && (
@@ -514,6 +517,9 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
                   entry={entry}
                   index={i}
                   isCurrentUser={entry.user_id === user?.id}
+                  numCourts={court.num_courts}
+                  hasActiveSession={hasActiveSession}
+                  reportedOccupied={recentOccupied}
                 />
               ))}
             </div>

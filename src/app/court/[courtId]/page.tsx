@@ -20,6 +20,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Court, QueueEntry, CourtSession } from "@/lib/supabase/types";
+import { useCourtTraffic } from "@/hooks/use-court-traffic";
+import { CourtActivityChart } from "@/components/courts/court-activity-chart";
+import {
+  estimateWaitMinutes,
+  estimateWaitForPosition,
+  formatWaitMinutes,
+} from "@/lib/court-traffic";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type PageState = "loading" | "auth" | "queue" | "session" | "join" | "start";
@@ -66,6 +73,16 @@ export default function CourtScanPage() {
   const [partySize, setPartySize] = useState(1);
   const [sport, setSport] = useState<"tennis" | "pickleball">("tennis");
   const actionInFlight = useRef(false);
+  const { recentOccupied, hourlyActivity, totalReports } = useCourtTraffic(courtId);
+
+  const estimatedWait = court
+    ? estimateWaitMinutes({
+        numCourts: court.num_courts,
+        queueLength: queueLen,
+        hasActiveSession: !!activeSession,
+        reportedOccupied: recentOccupied,
+      })
+    : 0;
 
   const fetchData = useCallback(async () => {
     const { data: courtData } = await supabase
@@ -202,7 +219,7 @@ export default function CourtScanPage() {
             {[
               { icon: Trophy, label: "Courts", value: court.num_courts },
               { icon: Users,  label: "Waiting", value: queueLen },
-              { icon: Clock,  label: "Est. wait", value: queueLen === 0 ? "0m" : `${queueLen * 30}m` },
+              { icon: Clock,  label: "Est. wait", value: formatWaitMinutes(estimatedWait) },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className="rounded-2xl bg-white/[0.04] border border-white/[0.06] p-3 text-center">
                 <Icon className="w-3.5 h-3.5 text-muted-foreground mx-auto mb-1" />
@@ -211,6 +228,15 @@ export default function CourtScanPage() {
               </div>
             ))}
           </div>
+        )}
+
+        {court && (
+          <CourtActivityChart
+            hourlyActivity={hourlyActivity}
+            totalReports={totalReports}
+            recentOccupied={recentOccupied}
+            numCourts={court.num_courts}
+          />
         )}
 
         {/* ── Page states ── */}
@@ -260,7 +286,16 @@ export default function CourtScanPage() {
                   <Zap className="w-3.5 h-3.5" /> You&apos;re up next!
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">Est. wait: ~{(userEntry.position - 1) * 30}m</p>
+              <p className="text-xs text-muted-foreground">
+                Est. wait: {formatWaitMinutes(
+                  estimateWaitForPosition(
+                    userEntry.position,
+                    court?.num_courts ?? 1,
+                    !!activeSession,
+                    recentOccupied
+                  )
+                )}
+              </p>
             </div>
             <Button
               variant="outline"
@@ -300,7 +335,7 @@ export default function CourtScanPage() {
           <div className="space-y-4">
             <div className="rounded-3xl bg-white/[0.04] border border-white/[0.07] p-5 space-y-4">
               <p className="text-center text-sm font-medium text-muted-foreground">
-                {queueLen} player{queueLen !== 1 ? "s" : ""} ahead of you · ~{queueLen * 30}m wait
+                {queueLen} player{queueLen !== 1 ? "s" : ""} ahead · {formatWaitMinutes(estimatedWait)} wait
               </p>
 
               {/* Sport selector */}

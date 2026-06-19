@@ -26,6 +26,8 @@ import {
 import type { Court, QueueEntry, CourtSession } from "@/lib/supabase/types";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/auth/auth-modal";
+import { useCourtTraffic } from "@/hooks/use-court-traffic";
+import { estimateWaitForPosition, formatWaitMinutes } from "@/lib/court-traffic";
 
 // ─── Countdown display ────────────────────────────────────────────────────────
 function CountdownTimer({
@@ -172,6 +174,7 @@ export default function QueuePage() {
     useQueue();
 
   const supabase = createClient();
+  const { recentOccupied } = useCourtTraffic(courtId);
 
   const [court, setCourt] = useState<Court | null>(null);
   const [entry, setEntry] = useState<QueueEntry | null>(null);
@@ -322,7 +325,7 @@ export default function QueuePage() {
     setLeaveLoading(true);
     await leaveQueue(entry.id);
     setLeaveLoading(false);
-    router.push("/");
+    router.push("/app");
   };
 
   const handleStart = async () => {
@@ -336,7 +339,7 @@ export default function QueuePage() {
     if (!session) return;
     await endSession(session.id);
     setSession(null);
-    router.push("/");
+    router.push("/app");
   };
 
   const handleExtend = async () => {
@@ -395,7 +398,7 @@ export default function QueuePage() {
           variant="ghost"
           size="sm"
           className="rounded-2xl gap-1.5 shrink-0 bg-white/[0.04] hover:bg-white/[0.08] h-10 px-3"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/app")}
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Back</span>
@@ -488,7 +491,7 @@ export default function QueuePage() {
                   toast.info("Your session has ended.");
                   // End the session in DB so the court clears and next player is notified
                   await endSession(session.id);
-                  router.push("/");
+                  router.push("/app");
                 }}
               />
               <p className="text-xs text-muted-foreground">
@@ -565,7 +568,15 @@ export default function QueuePage() {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span className="text-sm">
-                  ~{(entry?.position ?? 1) * 30 - 30} min estimated wait
+                  {formatWaitMinutes(
+                    estimateWaitForPosition(
+                      entry?.position ?? 1,
+                      court?.num_courts ?? 1,
+                      !!session,
+                      recentOccupied
+                    )
+                  )}{" "}
+                  estimated wait
                 </span>
               </div>
               {entry?.party_size && entry.party_size > 1 && (
@@ -619,7 +630,7 @@ export default function QueuePage() {
             </p>
             <Button
               className="rounded-2xl h-11 px-5 gradient-primary text-primary-foreground font-semibold"
-              onClick={() => router.push("/")}
+              onClick={() => router.push("/app")}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to map
