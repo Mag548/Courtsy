@@ -280,7 +280,7 @@ export default function ProfilePage() {
         )}
       </main>
 
-      <BottomNav active={bottomActive} showFab={false} />
+      <BottomNav active={bottomActive} />
     </div>
   );
 }

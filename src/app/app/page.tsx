@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { consumeMobileOAuthState, MOBILE_OAUTH_KEY } from "@/lib/mobile-oauth";
+import { cn } from "@/lib/utils";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
@@ -87,6 +88,7 @@ export default function HomePage() {
   // Drag gesture state for bottom sheet
   const dragStartY = useRef<number | null>(null);
   const dragStartSheet = useRef<"hidden" | "peek" | "open">("peek");
+  const didSwipeSheet = useRef(false);
 
   // ── Active count ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -277,7 +279,7 @@ export default function HomePage() {
     </div>
   );
 
-  // ── Search + filter controls (shared) ─────────────────────────────────────
+  // ── Search + filter controls (desktop sidebar) ───────────────────────────
   const SearchControls = () => (
     <div className="px-3 pb-3 space-y-2 shrink-0">
       <div className="relative">
@@ -308,6 +310,28 @@ export default function HomePage() {
     </div>
   );
 
+  const MobileSearchSlot = () => (
+    <>
+      <PlacesSearch onLocationSelect={handlePlaceSelect} />
+      <div className="flex gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
+        {(["all", "tennis", "pickleball"] as const).map((f) => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFilter(f)}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-medium transition-all ${
+              filter === f
+                ? "bg-white/[0.08] text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {f === "all" ? "All" : f === "tennis" ? "🎾" : "🏓"}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+
   // ── Shared map ────────────────────────────────────────────────────────────
   const mapEl = (
     <CourtMap
@@ -334,7 +358,8 @@ export default function HomePage() {
           filter={filter}
           onFilterChange={setFilter}
           showSportToggle
-          className="static mx-5 mt-4 mb-2 relative top-0 left-0 right-0"
+          variant="inline"
+          className="mx-5 mt-4 mb-2"
         />
         <div className="flex flex-1 overflow-hidden gap-3 px-3 pb-3 pt-2">
           {/* Sidebar */}
@@ -406,10 +431,26 @@ export default function HomePage() {
         </div>
       </div>
       ) : (
-      <div className="fixed inset-0 overflow-hidden">
+      <div
+        className="fixed inset-0 overflow-hidden"
+        style={{
+          ["--mobile-header-h" as string]:
+            mobileSheet === "open"
+              ? "max(0.75rem, env(safe-area-inset-top, 0px))"
+              : "var(--mobile-header-with-search-h)",
+        }}
+      >
 
-        {/* ── Full-screen map ── */}
-        <div className="absolute inset-0 z-0" style={{ touchAction: "pan-x pan-y" }}>{mapEl}</div>
+        {/* ── Map (clipped above bottom nav zone) ── */}
+        <div
+          className="absolute inset-x-0 top-0 z-0 bg-background"
+          style={{
+            bottom: "var(--mobile-nav-h)",
+            touchAction: "pan-x pan-y",
+          }}
+        >
+          {mapEl}
+        </div>
 
         {/* ── Header ── */}
         <AppHeader
@@ -419,6 +460,8 @@ export default function HomePage() {
           filter={filter}
           onFilterChange={setFilter}
           showSportToggle
+          mobileSearchSlot={<MobileSearchSlot />}
+          dismissed={mobileSheet === "open"}
         />
 
         {/* ── Locate FAB ── */}
@@ -426,7 +469,17 @@ export default function HomePage() {
           type="button"
           onClick={() => { requestLocation(); if (userLocation) toast.success("Centered on your location."); }}
           disabled={locating}
-          className="absolute top-24 right-5 z-20 h-11 w-11 rounded-full border border-white/10 bg-surface/80 backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+          className={cn(
+            "absolute right-5 z-20 h-11 w-11 rounded-full border border-white/10 bg-surface/80 backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-95 transition-all duration-500",
+            mobileSheet === "open"
+              ? "opacity-0 pointer-events-none top-5"
+              : "opacity-100"
+          )}
+          style={
+            mobileSheet === "open"
+              ? undefined
+              : { top: "calc(var(--mobile-header-with-search-h) + 0.5rem)" }
+          }
         >
           {locating
             ? <Loader2 className="w-5 h-5 animate-spin text-on-surface-variant" />
@@ -438,8 +491,8 @@ export default function HomePage() {
         <div
           className="mobile-sheet absolute left-0 right-0 z-30 flex flex-col max-w-2xl mx-auto bottom-sheet-transition"
           style={{
+            top: "var(--mobile-header-h)",
             bottom: "var(--mobile-nav-h)",
-            height: "calc(100% - var(--mobile-nav-h) - 1rem)",
             transform:
               mobileSheet === "open"
                 ? "translateY(0)"
@@ -449,10 +502,23 @@ export default function HomePage() {
           }}
         >
           <div className="flex flex-col h-full rounded-t-[24px] border border-white/10 border-b-0 bg-surface-container-lowest/95 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
-            {/* Drag handle */}
+            {/* Drag handle — large touch target, stays below app header */}
             <button
-              className="flex-shrink-0 flex flex-col items-center gap-2 pt-3 pb-2 px-4"
-              onClick={() => setMobileSheet((s) => (s === "open" ? "peek" : "open"))}
+              type="button"
+              aria-expanded={mobileSheet === "open"}
+              aria-label={
+                mobileSheet === "open"
+                  ? "Collapse court list"
+                  : "Expand court list"
+              }
+              className="flex-shrink-0 flex flex-col items-center gap-2 pt-4 pb-3 px-4 w-full touch-manipulation cursor-grab active:cursor-grabbing"
+              onClick={() => {
+                if (didSwipeSheet.current) {
+                  didSwipeSheet.current = false;
+                  return;
+                }
+                setMobileSheet((s) => (s === "open" ? "peek" : "open"));
+              }}
               onTouchStart={(e) => {
                 dragStartY.current = e.touches[0].clientY;
                 dragStartSheet.current = mobileSheet;
@@ -460,15 +526,16 @@ export default function HomePage() {
               onTouchEnd={(e) => {
                 if (dragStartY.current === null) return;
                 const dy = dragStartY.current - e.changedTouches[0].clientY;
-                if (Math.abs(dy) < 30) return; // tap, not swipe
+                dragStartY.current = null;
+                if (Math.abs(dy) < 40) return;
+                didSwipeSheet.current = true;
                 if (dy > 0) {
-                  // swiped up → open
                   setMobileSheet("open");
                 } else {
-                  // swiped down → peek or hidden
-                  setMobileSheet(dragStartSheet.current === "open" ? "peek" : "hidden");
+                  setMobileSheet(
+                    dragStartSheet.current === "open" ? "peek" : "hidden"
+                  );
                 }
-                dragStartY.current = null;
               }}
             >
               <div className="w-12 h-1.5 rounded-full bg-white/20" />
@@ -511,10 +578,7 @@ export default function HomePage() {
                   />
                 </div>
               ) : (
-                <>
-                  <SearchControls />
-                  <CourtList />
-                </>
+                <CourtList />
               )}
             </div>
           </div>

@@ -3,11 +3,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-primary-fixed: #c3f400;
-  --color-on-primary-fixed: #161e00;
-  --color-primary-fixed-dim: #abd600;
-  --color-primary-container: #c3f400;
-  --color-on-primary-container: #556d00;
+  --color-primary-fixed: hsl(142 72% 52%);
+  --color-on-primary-fixed: hsl(0 0% 96%);
+  --color-primary-fixed-dim: hsl(158 84% 42%);
+  --color-primary-container: hsl(142 72% 45%);
+  --color-on-primary-container: hsl(0 0% 4%);
   --color-secondary: #adc6ff;
   --color-on-secondary: #002e69;
   --color-secondary-container: #4b8eff;
@@ -23,7 +23,7 @@
   --color-surface-container-high: #2a2a2a;
   --color-surface-container-highest: #353534;
   --color-surface-container-lowest: #0e0e0e;
-  --color-surface-tint: #abd600;
+  --color-surface-tint: hsl(142 72% 45%);
   --color-on-surface: #e5e2e1;
   --color-on-surface-variant: #c4c9ac;
   --color-on-background: #e5e2e1;
@@ -41,29 +41,31 @@
 }
 
 :root {
-  --mobile-nav-h: 96px;
+  --mobile-nav-h: calc(4rem + 1.5rem + env(safe-area-inset-bottom, 0px));
+  --mobile-header-h: calc(5.75rem + env(safe-area-inset-top, 0px));
+  --mobile-header-with-search-h: calc(13.5rem + env(safe-area-inset-top, 0px));
   --background: 0 0% 7%;
   --foreground: 30 5% 90%;
   --card: 0 0% 12%;
   --card-foreground: 30 5% 90%;
   --popover: 0 0% 12%;
   --popover-foreground: 30 5% 90%;
-  --primary: 72 100% 48%;
-  --primary-foreground: 72 100% 5%;
-  --secondary: 220 100% 78%;
-  --secondary-foreground: 220 100% 21%;
-  --muted: 0 0% 16%;
-  --muted-foreground: 72 8% 73%;
-  --accent: 72 100% 48%;
-  --accent-foreground: 72 100% 5%;
-  --destructive: 4 100% 35%;
-  --destructive-foreground: 30 5% 90%;
-  --border: 0 0% 100% / 0.1;
-  --input: 0 0% 100% / 0.08;
-  --ring: 72 100% 48%;
+  --primary: 142 72% 45%;
+  --primary-foreground: 0 0% 4%;
+  --secondary: 0 0% 13%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 13%;
+  --muted-foreground: 0 0% 58%;
+  --accent: 142 72% 45%;
+  --accent-foreground: 0 0% 4%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 96%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+  --ring: 142 72% 45%;
   --radius: 1rem;
-  --chart-1: 72 100% 48%;
-  --chart-2: 220 100% 65%;
+  --chart-1: 142 72% 45%;
+  --chart-2: 199 89% 48%;
   --chart-3: 262 83% 58%;
   --chart-4: 43 96% 56%;
   --chart-5: 4 100% 35%;
@@ -212,11 +214,11 @@ html, body {
 
 /* ─── Text & gradients ─────────────────────────────────────────────────────── */
 .gradient-primary {
-  background: linear-gradient(135deg, #c3f400, #abd600);
+  background: linear-gradient(135deg, hsl(142 72% 46%), hsl(158 84% 42%));
 }
 
 .gradient-text {
-  background: linear-gradient(120deg, #c3f400, #abd600);
+  background: linear-gradient(120deg, hsl(142 72% 52%), hsl(160 84% 50%));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -261,7 +263,7 @@ html, body {
 }
 
 .progress-gradient {
-  background: linear-gradient(90deg, #c3f400 0%, #abd600 100%);
+  background: linear-gradient(90deg, hsl(142 72% 52%) 0%, hsl(142 72% 45%) 100%);
 }
 
 .slide-up {
@@ -283,7 +285,9 @@ html, body {
 }
 
 .bottom-sheet-transition {
-  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  transition:
+    transform 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    top 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .scrollbar-hide {
