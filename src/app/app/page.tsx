@@ -30,6 +30,7 @@ import {
   ChevronUp,
   ChevronDown,
   ArrowLeft,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { consumeMobileOAuthState, MOBILE_OAUTH_KEY } from "@/lib/mobile-oauth";
@@ -170,7 +171,11 @@ export default function HomePage() {
   };
 
   // ── Mobile tab handler ────────────────────────────────────────────────────
-  const handleMobileTab = (tab: typeof mobileTab) => {
+  const handleMobileTab = (tab: typeof mobileTab | "scan") => {
+    if (tab === "scan") {
+      router.push("/scan");
+      return;
+    }
     if (tab === "account") {
       if (user) router.push("/profile");
       else setAuthModalOpen(true);
@@ -441,7 +446,7 @@ export default function HomePage() {
             <span className="font-bold text-sm tracking-tight gradient-text">CourtQueue</span>
           </div>
 
-          {/* Locate button */}
+          {/* Locate */}
           <button
             onClick={() => { requestLocation(); if (userLocation) toast.success("Centered on your location."); }}
             disabled={locating}
@@ -551,6 +556,7 @@ export default function HomePage() {
             [
               { id: "map"     as const, icon: Map,   label: "Map",     badge: 0 },
               { id: "courts"  as const, icon: MapPin, label: "Courts",  badge: 0 },
+              { id: "scan"    as const, icon: QrCode, label: "Scan",    badge: 0 },
               { id: "active"  as const, icon: Timer,  label: "Active",  badge: activeCount },
               { id: "account" as const, icon: User,   label: "Account", badge: 0 },
             ]

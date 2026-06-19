@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { isAdminEmail } from "@/lib/admin";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,9 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, QrCode, Printer } from "lucide-react";
 
-// Pickleball paddle mark
 function PaddleLogo({ className }: { className?: string }) {
   return (
     <svg
@@ -25,7 +25,6 @@ function PaddleLogo({ className }: { className?: string }) {
       className={className}
       aria-hidden="true"
     >
-      {/* paddle face */}
       <rect
         x="4.5"
         y="2.5"
@@ -35,11 +34,9 @@ function PaddleLogo({ className }: { className?: string }) {
         fill="currentColor"
         fillOpacity="0.95"
       />
-      {/* holes */}
       <circle cx="9.5" cy="7.5" r="1" fill="hsl(var(--primary-foreground))" />
       <circle cx="14.5" cy="7.5" r="1" fill="hsl(var(--primary-foreground))" />
       <circle cx="12" cy="10.5" r="1" fill="hsl(var(--primary-foreground))" />
-      {/* handle */}
       <rect
         x="10.5"
         y="15.5"
@@ -56,11 +53,12 @@ function PaddleLogo({ className }: { className?: string }) {
 export function Navbar() {
   const { user, profile, signOut, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isAdmin = isAdminEmail(user?.email);
 
   return (
     <nav className="h-16 sticky top-0 z-50 flex items-center px-3 sm:px-5">
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
-        {/* Brand pill */}
         <Link
           href="/app"
           className="group flex items-center gap-2.5 rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-xl px-3 py-2 pr-4 transition-all hover:border-white/15 hover:bg-white/[0.06]"
@@ -73,8 +71,19 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Account pill */}
         <div className="flex items-center gap-3">
+          <Link
+            href="/scan"
+            className={`flex items-center gap-2 rounded-2xl border backdrop-blur-xl px-3.5 py-2 text-sm font-medium transition-all ${
+              pathname === "/scan"
+                ? "border-primary/40 bg-primary/10 text-primary"
+                : "border-white/8 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]"
+            }`}
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="hidden sm:inline">Scan</span>
+          </Link>
+
           {!loading &&
             (user ? (
               <DropdownMenu>
@@ -121,6 +130,15 @@ export function Navbar() {
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem
+                        className="rounded-xl"
+                        onClick={() => router.push("/print/qr-codes")}
+                      >
+                        <Printer className="w-4 h-4 mr-2" />
+                        Print park QR codes
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>

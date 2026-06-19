@@ -23,7 +23,6 @@ import {
   Trophy,
   Navigation,
   ExternalLink,
-  QrCode,
   BarChart2,
   Check,
 } from "lucide-react";
@@ -34,7 +33,6 @@ import { createClient } from "@/lib/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { AuthModal } from "@/components/auth/auth-modal";
-import QRCode from "react-qr-code";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CourtActivityChart } from "@/components/courts/court-activity-chart";
 import { useCourtTraffic } from "@/hooks/use-court-traffic";
@@ -235,7 +233,6 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
     (QueueEntry & { user?: { full_name: string | null; avatar_url: string | null } })[]
   >([]);
   const [showTrafficReport, setShowTrafficReport] = useState(false);
-  const [showQR, setShowQR] = useState(false);
   const supabase = createClient();
   const { recentOccupied, hourlyActivity, totalReports, refetch: refetchTraffic } =
     useCourtTraffic(court.id);
@@ -394,57 +391,17 @@ export function CourtCard({ court, onClose, onDirections }: CourtCardProps) {
           </Button>
         </div>
 
-        {/* QR + Traffic row */}
-        <div className="flex gap-2">
+        {/* Traffic report */}
+        {user && (
           <Button
             variant="outline"
-            className="flex-1 h-10 rounded-2xl gap-2 text-xs border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07]"
-            onClick={() => setShowQR(true)}
+            className="w-full h-10 rounded-2xl gap-2 text-xs border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07]"
+            onClick={() => setShowTrafficReport(true)}
           >
-            <QrCode className="w-3.5 h-3.5 text-primary" />
-            Court QR Code
+            <BarChart2 className="w-3.5 h-3.5 text-yellow-400" />
+            Report Traffic
           </Button>
-          {user && (
-            <Button
-              variant="outline"
-              className="flex-1 h-10 rounded-2xl gap-2 text-xs border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07]"
-              onClick={() => setShowTrafficReport(true)}
-            >
-              <BarChart2 className="w-3.5 h-3.5 text-yellow-400" />
-              Report Traffic
-            </Button>
-          )}
-        </div>
-
-        {/* QR Code Dialog */}
-        <Dialog open={showQR} onOpenChange={setShowQR}>
-          <DialogContent className="sm:max-w-[320px] p-6 rounded-3xl border-white/[0.08] bg-[#0a0a0a]">
-            <DialogTitle className="text-center font-bold">{court.name}</DialogTitle>
-            <div className="flex flex-col items-center gap-4 mt-2">
-              <div className="bg-white p-4 rounded-2xl">
-                <QRCode
-                  value={`${typeof window !== "undefined" ? window.location.origin : "https://courtqueue.vercel.app"}/court/${court.id}`}
-                  size={180}
-                  style={{ display: "block" }}
-                />
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Scan to instantly join the queue or start a session at this court
-              </p>
-              <Button
-                variant="outline"
-                className="w-full rounded-2xl border-white/[0.08]"
-                onClick={() => {
-                  const url = `${window.location.origin}/court/${court.id}`;
-                  navigator.clipboard.writeText(url);
-                  toast.success("Link copied!");
-                }}
-              >
-                Copy Link
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        )}
 
         {/* Traffic Report Dialog */}
         <Dialog open={showTrafficReport} onOpenChange={setShowTrafficReport}>

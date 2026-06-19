@@ -29,7 +29,7 @@ import {
 } from "@/lib/court-traffic";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type PageState = "loading" | "auth" | "queue" | "session" | "join" | "start";
+type PageState = "loading" | "auth" | "queue" | "ready" | "session" | "join";
 
 function CountdownTimer({ expiresAt }: { expiresAt: string }) {
   const [display, setDisplay] = useState("");
@@ -145,12 +145,15 @@ export default function CourtScanPage() {
 
     if (userEntry?.status === "playing") {
       setPageState("session");
+    } else if (
+      userEntry &&
+      (userEntry.position === 1 || userEntry.status === "notified")
+    ) {
+      setPageState("ready");
     } else if (userEntry) {
       setPageState("queue");
-    } else if (queueLen > 0) {
-      setPageState("join");
     } else {
-      setPageState("start");
+      setPageState("join");
     }
   }, [authLoading, user, court, userEntry, activeSession, queueLen]);
 
@@ -162,23 +165,15 @@ export default function CourtScanPage() {
     actionInFlight.current = true;
     const entry = await joinQueue(courtId, user.id, sport, partySize);
     actionInFlight.current = false;
-    if (entry) router.push(`/queue/${courtId}`);
+    if (entry) await fetchData();
   };
 
-  const handleStart = async () => {
-    if (!user || actionInFlight.current) return;
+  const handleStartSession = async () => {
+    if (!user || !userEntry || actionInFlight.current) return;
     actionInFlight.current = true;
-    // Need a queue entry first (position 1 or only player)
-    const { data: queue } = await supabase
-      .from("queues").select("id").eq("court_id", courtId).single();
-    if (!queue) { toast.error("Queue not found"); actionInFlight.current = false; return; }
-
-    const entry = await joinQueue(courtId, user.id, sport, partySize);
-    if (entry) {
-      await startSession(courtId, entry.id, user.id);
-      router.push(`/queue/${courtId}`);
-    }
+    await startSession(courtId, userEntry.id, user.id);
     actionInFlight.current = false;
+    router.push(`/queue/${courtId}`);
   };
 
   // ── Render ──────────────────────────────────────────────────────────────────
@@ -275,7 +270,45 @@ export default function CourtScanPage() {
           </div>
         )}
 
-        {/* ALREADY IN QUEUE */}
+        {/* READY TO START (position #1) */}
+        {pageState === "ready" && userEntry && (
+          <div className="space-y-4">
+            <div className="rounded-3xl bg-primary/10 border border-primary/25 p-6 text-center space-y-2">
+              <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
+                Your position
+              </p>
+              <p className="text-7xl font-black text-primary">#{userEntry.position}</p>
+              <p className="text-sm text-primary/80 flex items-center justify-center gap-1">
+                <Zap className="w-3.5 h-3.5" /> You&apos;re up next!
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Head to the court and start your session when ready
+              </p>
+            </div>
+            <Button
+              className="w-full h-14 rounded-2xl gradient-primary font-bold text-primary-foreground text-base shadow-lg shadow-primary/20"
+              onClick={handleStartSession}
+              disabled={queueLoading}
+            >
+              {queueLoading ? (
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-5 h-5 mr-2" />
+              )}
+              Start Session
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-11 rounded-2xl border-white/[0.08]"
+              onClick={() => router.push(`/queue/${courtId}`)}
+            >
+              View full queue details
+              <ChevronRight className="w-4 h-4 ml-auto" />
+            </Button>
+          </div>
+        )}
+
+        {/* ALREADY IN QUEUE (waiting) */}
         {pageState === "queue" && userEntry && (
           <div className="space-y-4">
             <div className="rounded-3xl bg-primary/10 border border-primary/25 p-6 text-center space-y-2">
@@ -330,12 +363,14 @@ export default function CourtScanPage() {
           </div>
         )}
 
-        {/* JOIN QUEUE (people already waiting) */}
+        {/* JOIN QUEUE */}
         {pageState === "join" && (
           <div className="space-y-4">
             <div className="rounded-3xl bg-white/[0.04] border border-white/[0.07] p-5 space-y-4">
-              <p className="text-center text-sm font-medium text-muted-foreground">
-                {queueLen} player{queueLen !== 1 ? "s" : ""} ahead · {formatWaitMinutes(estimatedWait)} wait
+              <p className="text-center text-sm font-medium">
+                {queueLen > 0
+                  ? `${queueLen} player${queueLen !== 1 ? "s" : ""} waiting · ${formatWaitMinutes(estimatedWait)} est. wait`
+                  : "Courts are free — join the queue to claim your spot"}
               </p>
 
               {/* Sport selector */}
@@ -373,57 +408,6 @@ export default function CourtScanPage() {
             >
               {queueLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Users className="w-5 h-5 mr-2" />}
               Join Queue
-            </Button>
-          </div>
-        )}
-
-        {/* START SESSION (courts free) */}
-        {pageState === "start" && (
-          <div className="space-y-4">
-            <div className="rounded-3xl bg-primary/8 border border-primary/20 p-5 space-y-4">
-              <div className="text-center space-y-1">
-                <div className="flex items-center justify-center gap-1.5 text-primary text-sm font-semibold">
-                  <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  Courts are free!
-                </div>
-                <p className="text-xs text-muted-foreground">Start your 30-minute session now</p>
-              </div>
-
-              {/* Sport selector */}
-              {court?.court_type === "both" && (
-                <div className="flex gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
-                  {(["tennis", "pickleball"] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSport(s)}
-                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
-                        sport === s ? "bg-white/[0.08] text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      {s === "tennis" ? "🎾 Tennis" : "🏓 Pickleball"}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Party size */}
-              <div className="flex items-center justify-between bg-white/[0.04] rounded-2xl px-4 py-2.5 border border-white/[0.05]">
-                <span className="text-sm text-muted-foreground">Party size</span>
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setPartySize(Math.max(1, partySize - 1))} className="w-8 h-8 rounded-xl bg-white/[0.06] flex items-center justify-center text-lg font-bold">−</button>
-                  <span className="text-base font-bold w-5 text-center">{partySize}</span>
-                  <button onClick={() => setPartySize(Math.min(8, partySize + 1))} className="w-8 h-8 rounded-xl bg-white/[0.06] flex items-center justify-center text-lg font-bold">+</button>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              className="w-full h-14 rounded-2xl gradient-primary font-bold text-primary-foreground text-base shadow-lg shadow-primary/20"
-              onClick={handleStart}
-              disabled={queueLoading}
-            >
-              {queueLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Zap className="w-5 h-5 mr-2" />}
-              Start My Session
             </Button>
           </div>
         )}
