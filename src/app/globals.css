@@ -2,33 +2,71 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme inline {
+  --color-primary-fixed: #c3f400;
+  --color-on-primary-fixed: #161e00;
+  --color-primary-fixed-dim: #abd600;
+  --color-primary-container: #c3f400;
+  --color-on-primary-container: #556d00;
+  --color-secondary: #adc6ff;
+  --color-on-secondary: #002e69;
+  --color-secondary-container: #4b8eff;
+  --color-on-secondary-container: #00285c;
+  --color-tertiary: #ffffff;
+  --color-on-tertiary: #2f3034;
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-bright: #3a3939;
+  --color-surface-variant: #353534;
+  --color-surface-container: #201f1f;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-tint: #abd600;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #c4c9ac;
+  --color-on-background: #e5e2e1;
+  --color-outline: #8e9379;
+  --color-outline-variant: #444933;
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+  --spacing-container-padding: 20px;
+  --spacing-section-gap: 32px;
+  --spacing-safe-area-bottom: 34px;
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
-  --mobile-nav-h: 68px;
-  --background: 0 0% 4%;
-  --foreground: 0 0% 96%;
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 96%;
-  --popover: 0 0% 8%;
-  --popover-foreground: 0 0% 96%;
-  --primary: 142 72% 45%;
-  --primary-foreground: 0 0% 4%;
-  --secondary: 0 0% 13%;
-  --secondary-foreground: 0 0% 96%;
-  --muted: 0 0% 13%;
-  --muted-foreground: 0 0% 58%;
-  --accent: 142 72% 45%;
-  --accent-foreground: 0 0% 4%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 96%;
-  --border: 0 0% 16%;
-  --input: 0 0% 16%;
-  --ring: 142 72% 45%;
+  --mobile-nav-h: 96px;
+  --background: 0 0% 7%;
+  --foreground: 30 5% 90%;
+  --card: 0 0% 12%;
+  --card-foreground: 30 5% 90%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 30 5% 90%;
+  --primary: 72 100% 48%;
+  --primary-foreground: 72 100% 5%;
+  --secondary: 220 100% 78%;
+  --secondary-foreground: 220 100% 21%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 72 8% 73%;
+  --accent: 72 100% 48%;
+  --accent-foreground: 72 100% 5%;
+  --destructive: 4 100% 35%;
+  --destructive-foreground: 30 5% 90%;
+  --border: 0 0% 100% / 0.1;
+  --input: 0 0% 100% / 0.08;
+  --ring: 72 100% 48%;
   --radius: 1rem;
-  --chart-1: 142 72% 45%;
-  --chart-2: 199 89% 48%;
+  --chart-1: 72 100% 48%;
+  --chart-2: 220 100% 65%;
   --chart-3: 262 83% 58%;
   --chart-4: 43 96% 56%;
-  --chart-5: 0 84% 60%;
+  --chart-5: 4 100% 35%;
 }
 
 * {
@@ -42,20 +80,7 @@ html {
 
 body {
   color: hsl(var(--foreground));
-  background-color: hsl(var(--background));
-  /* Soft ambient depth — subtle radial glows for a premium consumer feel */
-  background-image:
-    radial-gradient(
-      900px circle at 12% -10%,
-      hsl(142 72% 45% / 0.08),
-      transparent 55%
-    ),
-    radial-gradient(
-      800px circle at 100% 0%,
-      hsl(199 89% 48% / 0.06),
-      transparent 50%
-    );
-  background-attachment: fixed;
+  background-color: #131313;
 }
 
 /* Typography ─────────────────────────────────────────────────────────────── */
@@ -186,15 +211,87 @@ html, body {
 }
 
 /* ─── Text & gradients ─────────────────────────────────────────────────────── */
+.gradient-primary {
+  background: linear-gradient(135deg, #c3f400, #abd600);
+}
+
 .gradient-text {
-  background: linear-gradient(120deg, hsl(142 72% 52%), hsl(160 84% 50%));
+  background: linear-gradient(120deg, #c3f400, #abd600);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.gradient-primary {
-  background: linear-gradient(135deg, hsl(142 72% 46%), hsl(158 84% 42%));
+/* ─── Design system surfaces ─────────────────────────────────────────────── */
+.glass-panel {
+  background: rgba(32, 31, 31, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.label-caps {
+  font-family: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+
+.map-marker-pulse {
+  animation: map-marker-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes map-marker-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.progress-gradient {
+  background: linear-gradient(90deg, #c3f400 0%, #abd600 100%);
+}
+
+.slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.bottom-sheet-transition {
+  transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 /* ─── Elevated surfaces ────────────────────────────────────────────────────── */

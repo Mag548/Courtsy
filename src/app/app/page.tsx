@@ -4,7 +4,9 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { CourtMap } from "@/components/map/court-map";
 import { CourtCard } from "@/components/courts/court-card";
-import { Navbar } from "@/components/layout/navbar";
+import { CourtListCard } from "@/components/courts/court-list-card";
+import { AppHeader } from "@/components/layout/app-header";
+import { BottomNav, type BottomNavTab } from "@/components/layout/bottom-nav";
 import { PlacesSearch } from "@/components/map/places-search";
 import { ActiveSessionsPanel } from "@/components/sessions/active-sessions-panel";
 import { AuthModal } from "@/components/auth/auth-modal";
@@ -15,7 +17,6 @@ import type { CourtWithQueue } from "@/lib/supabase/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Search,
   SlidersHorizontal,
@@ -25,19 +26,12 @@ import {
   Navigation,
   Timer,
   MapPin,
-  Map,
-  User,
   ChevronUp,
   ChevronDown,
   ArrowLeft,
-  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { consumeMobileOAuthState, MOBILE_OAUTH_KEY } from "@/lib/mobile-oauth";
-import {
-  countActiveSessions,
-  getAvailableCourts,
-} from "@/lib/court-availability";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
@@ -174,26 +168,33 @@ export default function HomePage() {
     toast.success(`Showing courts near ${loc.name}`);
   };
 
-  // ── Mobile tab handler ────────────────────────────────────────────────────
-  const handleMobileTab = (tab: typeof mobileTab | "scan") => {
+  const handleBottomNav = (tab: BottomNavTab) => {
     if (tab === "scan") {
       router.push("/scan");
       return;
     }
-    if (tab === "account") {
-      if (user) router.push("/profile");
+    if (tab === "activity") {
+      router.push("/profile?tab=history");
+      return;
+    }
+    if (tab === "settings") {
+      if (user) router.push("/profile?tab=settings");
       else setAuthModalOpen(true);
       return;
     }
-    if (tab === "map") {
-      setMobileSheet("hidden");
-      setMobileTab("map");
+    if (tab === "queue") {
+      setMobileTab("active");
+      setMobileSheet("open");
       setSelectedCourt(null);
       return;
     }
-    setMobileTab(tab);
-    setMobileSheet((prev) => (prev === "hidden" ? "peek" : prev));
+    setMobileTab("courts");
+    setMobileSheet((s) => (s === "hidden" ? "peek" : s));
+    setSelectedCourt(null);
   };
+
+  const bottomNavActive: BottomNavTab =
+    mobileTab === "active" ? "queue" : "courts";
 
   // Auto-open sheet when court is selected on mobile
   // Auto-open sheet when a court is selected on mobile
@@ -237,83 +238,39 @@ export default function HomePage() {
 
   // ── Court list (shared by desktop sidebar + mobile sheet) ─────────────────
   const CourtList = () => (
-    <div className="space-y-2.5 px-3 pb-4">
-      <div className="flex items-center justify-between px-0.5 mb-1">
-        <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-          {userLocation && <Navigation className="w-3 h-3 text-primary" />}
-          {filteredAndSortedCourts.length} courts{userLocation ? " nearby" : " found"}
-        </p>
-        <Button variant="ghost" size="sm" onClick={refetch} className="h-7 text-xs rounded-lg">
-          <RefreshCw className="w-3 h-3 mr-1" />
-          Refresh
-        </Button>
+    <div className="space-y-4 px-container-padding pb-4">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h2 className="text-lg font-semibold text-primary">Nearby Courts</h2>
+          <p className="text-sm text-on-surface-variant">
+            {filteredAndSortedCourts.length} parks
+            {userLocation ? " within range" : " found"}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={refetch}
+          className="p-2 bg-white/5 border border-white/10 rounded-full text-on-surface-variant hover:text-primary transition-colors"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
       </div>
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <Loader2 className="w-6 h-6 animate-spin text-on-surface-variant" />
         </div>
       ) : (
-        filteredAndSortedCourts.map((court, i) => {
-          const queueLen = court.queue?.queue_entries?.filter((e) => e.status === "waiting").length ?? 0;
-          const available = getAvailableCourts(
-            court.num_courts,
-            court.active_sessions,
-            0
-          );
-          const playing = countActiveSessions(court.active_sessions);
+        filteredAndSortedCourts.map((court) => {
           const dist = (court as typeof court & { _distance?: number })._distance;
           return (
-            <button
+            <CourtListCard
               key={court.id}
+              court={court}
+              distanceLabel={
+                dist !== undefined ? `${formatDistance(dist)} away` : undefined
+              }
               onClick={() => handleCourtSelect(court)}
-              style={{ animationDelay: `${Math.min(i * 35, 350)}ms` }}
-              className="fade-in-up lift w-full text-left p-4 rounded-2xl border border-white/[0.06] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.12] active:scale-[0.98] group transition-transform"
-            >
-              <div className="flex items-start justify-between mb-2.5">
-                <div className="flex-1 min-w-0 pr-2">
-                  <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
-                    {court.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate mt-0.5">
-                    {court.address}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <Badge
-                    variant="outline"
-                    className={`text-xs rounded-lg ${
-                      court.court_type === "tennis"
-                        ? "border-green-500/30 text-green-400 bg-green-500/10"
-                        : court.court_type === "pickleball"
-                        ? "border-blue-500/30 text-blue-400 bg-blue-500/10"
-                        : "border-purple-500/30 text-purple-400 bg-purple-500/10"
-                    }`}
-                  >
-                    {court.court_type === "both" ? "T/P" : court.court_type === "tennis" ? "🎾" : "🏓"}
-                  </Badge>
-                  {dist !== undefined && (
-                    <span className="text-xs text-muted-foreground font-mono">{formatDistance(dist)}</span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-3 text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground">
-                  <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                  {available}/{court.num_courts} available
-                </span>
-                <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full ${
-                  queueLen > 0 ? "bg-primary/15 text-primary font-medium" : "bg-white/[0.04] text-muted-foreground"
-                }`}>
-                  {queueLen === 0 ? "No queue" : `${queueLen} waiting`}
-                </span>
-                {playing > 0 && (
-                  <span className="text-orange-400 flex items-center gap-1 ml-auto">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-400 pulse-green" />
-                    {playing} playing
-                  </span>
-                )}
-              </div>
-            </button>
+            />
           );
         })
       )}
@@ -369,11 +326,19 @@ export default function HomePage() {
 
       {/* Only mount ONE layout — prevents desktop sidebar bleeding onto mobile after OAuth */}
       {!showMobile ? (
-      <div className="flex flex-col h-full">
-        <Navbar />
-        <div className="flex flex-1 overflow-hidden gap-3 px-3 pb-3">
+      <div className="flex flex-col h-full bg-background">
+        <AppHeader
+          showSearch
+          search={search}
+          onSearchChange={setSearch}
+          filter={filter}
+          onFilterChange={setFilter}
+          showSportToggle
+          className="static mx-5 mt-4 mb-2 relative top-0 left-0 right-0"
+        />
+        <div className="flex flex-1 overflow-hidden gap-3 px-3 pb-3 pt-2">
           {/* Sidebar */}
-          <div className={`${sidebarOpen ? "w-[26rem]" : "w-0"} flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col surface-elevated rounded-3xl`}>
+          <div className={`${sidebarOpen ? "w-[26rem]" : "w-0"} flex-shrink-0 transition-all duration-300 overflow-hidden flex flex-col glass-panel rounded-3xl`}>
             {/* Tab bar */}
             <div className="p-3 pb-2 shrink-0">
               <div className="flex gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.06]">
@@ -446,46 +411,44 @@ export default function HomePage() {
         {/* ── Full-screen map ── */}
         <div className="absolute inset-0 z-0" style={{ touchAction: "pan-x pan-y" }}>{mapEl}</div>
 
-        {/* ── Floating top bar ── */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 pt-4 pb-2 pointer-events-none">
-          {/* Brand pill */}
-          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl px-3 py-2 pointer-events-auto shadow-lg">
-            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-xs font-black text-primary-foreground">CQ</span>
-            </div>
-            <span className="font-bold text-sm tracking-tight gradient-text">CourtQueue</span>
-          </div>
+        {/* ── Header ── */}
+        <AppHeader
+          showSearch
+          search={search}
+          onSearchChange={setSearch}
+          filter={filter}
+          onFilterChange={setFilter}
+          showSportToggle
+        />
 
-          {/* Locate */}
-          <button
-            onClick={() => { requestLocation(); if (userLocation) toast.success("Centered on your location."); }}
-            disabled={locating}
-            className="pointer-events-auto h-11 w-11 rounded-2xl border border-white/10 bg-black/60 backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"
-          >
-            {locating
-              ? <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              : <LocateFixed className={`w-5 h-5 ${userLocation ? "text-primary" : "text-foreground"}`} />
-            }
-          </button>
-        </div>
+        {/* ── Locate FAB ── */}
+        <button
+          type="button"
+          onClick={() => { requestLocation(); if (userLocation) toast.success("Centered on your location."); }}
+          disabled={locating}
+          className="absolute top-24 right-5 z-20 h-11 w-11 rounded-full border border-white/10 bg-surface/80 backdrop-blur-xl flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+        >
+          {locating
+            ? <Loader2 className="w-5 h-5 animate-spin text-on-surface-variant" />
+            : <LocateFixed className={`w-5 h-5 ${userLocation ? "text-primary-fixed" : "text-on-surface"}`} />
+          }
+        </button>
 
         {/* ── Bottom sheet ── */}
         <div
-          className="mobile-sheet absolute left-0 right-0 z-30 flex flex-col"
+          className="mobile-sheet absolute left-0 right-0 z-30 flex flex-col max-w-2xl mx-auto bottom-sheet-transition"
           style={{
             bottom: "var(--mobile-nav-h)",
-            height: "calc(100% - var(--mobile-nav-h))",
+            height: "calc(100% - var(--mobile-nav-h) - 1rem)",
             transform:
               mobileSheet === "open"
                 ? "translateY(0)"
                 : mobileSheet === "peek"
-                ? "translateY(calc(100% - 260px))"
+                ? "translateY(calc(100% - 200px))"
                 : "translateY(100%)",
-            transition: "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         >
-          {/* Sheet surface */}
-          <div className="flex flex-col h-full rounded-t-3xl border border-white/[0.08] border-b-0 bg-[hsl(0_0%_7%/0.97)] backdrop-blur-2xl shadow-[0_-20px_60px_-20px_hsl(0_0%_0%/0.7)]">
+          <div className="flex flex-col h-full rounded-t-[24px] border border-white/10 border-b-0 bg-surface-container-lowest/95 backdrop-blur-3xl shadow-[0_-20px_40px_rgba(0,0,0,0.5)]">
             {/* Drag handle */}
             <button
               className="flex-shrink-0 flex flex-col items-center gap-2 pt-3 pb-2 px-4"
@@ -508,7 +471,7 @@ export default function HomePage() {
                 dragStartY.current = null;
               }}
             >
-              <div className="w-10 h-1 rounded-full bg-white/20" />
+              <div className="w-12 h-1.5 rounded-full bg-white/20" />
               {/* Sheet header */}
               <div className="flex items-center justify-between w-full mt-0.5">
                 <h2 className="text-base font-semibold">
@@ -525,7 +488,7 @@ export default function HomePage() {
             </button>
 
             {/* Sheet content */}
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-hide pb-8">
               {mobileTab === "active" ? (
                 <ActiveSessionsPanel />
               ) : selectedCourt ? (
@@ -557,55 +520,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── Bottom navigation bar ── */}
-        <div
-          className="absolute bottom-0 left-0 right-0 z-40 flex items-center border-t border-white/[0.07] bg-[hsl(0_0%_5%/0.97)] backdrop-blur-2xl"
-          style={{ height: "var(--mobile-nav-h)", paddingBottom: "env(safe-area-inset-bottom)" }}
-        >
-          {(
-            [
-              { id: "map"     as const, icon: Map,   label: "Map",     badge: 0 },
-              { id: "courts"  as const, icon: MapPin, label: "Courts",  badge: 0 },
-              { id: "scan"    as const, icon: QrCode, label: "Scan",    badge: 0 },
-              { id: "active"  as const, icon: Timer,  label: "Active",  badge: activeCount },
-              { id: "account" as const, icon: User,   label: "Account", badge: 0 },
-            ]
-          ).map(({ id, icon: Icon, label, badge }) => {
-            const isActive =
-              id === "account"
-                ? false
-                : mobileTab === id;
-            return (
-              <button
-                key={id}
-                onClick={() => handleMobileTab(id)}
-                className="flex-1 flex flex-col items-center justify-center gap-1 py-2 relative active:scale-95 transition-transform"
-              >
-                <div className={`relative flex items-center justify-center w-10 h-7 rounded-2xl transition-all ${
-                  isActive ? "gradient-primary shadow-md shadow-primary/30" : ""
-                }`}>
-                  <Icon className={`w-5 h-5 transition-colors ${
-                    isActive ? "text-primary-foreground" : "text-muted-foreground"
-                  }`} />
-                  {"badge" in { badge } && badge && badge > 0 ? (
-                    <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                      {badge}
-                    </span>
-                  ) : null}
-                </div>
-                <span className={`text-[10px] font-medium transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground"
-                }`}>
-                  {id === "account"
-                    ? user
-                      ? (profile?.full_name?.split(" ")[0] ?? "Account")
-                      : "Sign In"
-                    : label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <BottomNav
+          active={bottomNavActive}
+          onTabChange={handleBottomNav}
+          queueBadge={activeCount}
+        />
       </div>
       )}
 

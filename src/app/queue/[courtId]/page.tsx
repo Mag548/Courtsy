@@ -70,7 +70,7 @@ function CountdownTimer({
   return (
     <span
       className={`font-mono text-6xl font-bold tracking-tighter tabular-nums ${
-        urgent ? "text-red-400 animate-pulse" : "text-primary"
+        urgent ? "text-error animate-pulse" : "text-primary-fixed"
       }`}
     >
       {display}
@@ -360,54 +360,41 @@ export default function QueuePage() {
   const sportLabel = entry?.sport ?? court?.court_type ?? "court";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* ── Header ── */}
-      <div className="sticky top-0 z-10 frosted-surface border-b border-white/[0.06] px-3 sm:px-4 py-3 flex items-center gap-2.5">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="rounded-2xl gap-1.5 shrink-0 bg-white/[0.04] hover:bg-white/[0.08] h-10 px-3"
-          onClick={() => router.push("/app")}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back</span>
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h1 className="font-semibold truncate">{court?.name ?? "Court"}</h1>
-          {court?.address && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
-              <MapPin className="w-3 h-3 shrink-0" />
-              {court.address}
-            </p>
-          )}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 shrink-0 rounded-2xl h-10 px-3.5 border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07]"
-          onClick={handleDirections}
-        >
-          <Navigation className="w-3.5 h-3.5 text-primary" />
-          Directions
-        </Button>
-        {court && (
+    <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
+      {/* Blurred map backdrop */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm z-10" />
+        <div className="w-full h-full scale-110 opacity-30 bg-surface-container-high" />
+      </div>
+
+      {/* Header */}
+      <div className="sticky top-0 z-20 px-4 pt-4">
+        <div className="rounded-full bg-surface/80 backdrop-blur-xl border border-white/10 shadow-[0px_40px_40px_-10px_rgba(19,19,19,0.4)] flex items-center gap-2 px-4 py-3 max-w-md mx-auto">
           <Button
             variant="ghost"
-            size="icon"
-            title="Open in Google Maps"
-            className="shrink-0 rounded-2xl h-10 w-10 bg-white/[0.03] hover:bg-white/[0.07]"
-            onClick={() =>
-              window.open(
-                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  court.name + ", " + (court.address ?? "")
-                )}&center=${court.latitude},${court.longitude}`,
-                "_blank"
-              )
-            }
+            size="sm"
+            className="rounded-full h-9 w-9 p-0 shrink-0"
+            onClick={() => router.push("/app")}
           >
-            <ExternalLink className="w-4 h-4 text-primary" />
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-        )}
+          <div className="flex-1 min-w-0 text-center">
+            <h1 className="font-semibold truncate text-primary-fixed text-sm">
+              {court?.name ?? "Court"}
+            </h1>
+            {court?.address && (
+              <p className="text-[10px] text-on-surface-variant truncate">{court.address}</p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full h-9 w-9 p-0 shrink-0"
+            onClick={handleDirections}
+          >
+            <Navigation className="w-4 h-4 text-primary-fixed" />
+          </Button>
+        </div>
       </div>
 
       {/* ── Spot-open banner ── */}
@@ -426,7 +413,7 @@ export default function QueuePage() {
       )}
 
       {/* ── Main content ── */}
-      <div className="fade-in-up flex-1 flex flex-col items-center justify-start px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] gap-6 max-w-md mx-auto w-full">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start px-container-padding py-8 pb-40 gap-6 max-w-md mx-auto w-full">
         {/* Status badge */}
         <Badge
           className={`text-sm px-4 py-1.5 rounded-full font-medium ${
@@ -449,15 +436,15 @@ export default function QueuePage() {
 
         {/* ── No timer while queue is empty ── */}
         {isUntimedSession && entry && (
-          <div className="w-full space-y-6">
-            <div className="frosted-surface rounded-3xl p-8 flex flex-col items-center gap-3 text-center">
+          <div className="w-full space-y-6 slide-up">
+            <div className="glass-panel rounded-3xl p-8 flex flex-col items-center gap-3 text-center">
               <p className="text-sm text-muted-foreground uppercase tracking-widest">
                 Your court
               </p>
-              <p className="text-6xl font-black text-green-400">
+              <p className="text-6xl font-black text-primary-fixed">
                 Court {entry.assigned_court_number ?? session?.court_number ?? "—"}
               </p>
-              <p className="text-sm font-semibold text-green-400">Enjoy your time!</p>
+              <p className="text-sm font-semibold text-primary-fixed">Enjoy your time!</p>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
                 {courtAssignmentMessage(
                   userCourtNumber ?? 1,
@@ -478,8 +465,8 @@ export default function QueuePage() {
 
         {/* ── Timed session ── */}
         {isTimedPlay && session && (
-          <div className="w-full space-y-6">
-            <div className="frosted-surface rounded-3xl p-8 flex flex-col items-center gap-3">
+          <div className="w-full space-y-6 slide-up">
+            <div className="glass-panel rounded-3xl p-8 flex flex-col items-center gap-3">
               <p className="text-sm text-muted-foreground uppercase tracking-widest">
                 Court {entry?.assigned_court_number ?? session.court_number} · Time remaining
               </p>
@@ -519,50 +506,58 @@ export default function QueuePage() {
           </div>
         )}
 
-        {(isWaiting || isNotified) && (
-          /* ── Waiting / notified view ── */
-          <div className="w-full space-y-6">
-            <div className="frosted-surface rounded-3xl p-8 flex flex-col items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center">
-                <span className="text-4xl font-bold text-primary">
-                  {entry?.position ?? "—"}
-                </span>
-              </div>
-              <div className="text-center">
-                <p className="font-semibold text-lg">
-                  {entry?.position === 1
-                    ? "You're next!"
-                    : `#${entry?.position} in queue`}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {queueAhead === 0
-                    ? "No one ahead of you"
-                    : `${queueAhead} ${queueAhead === 1 ? "person" : "people"} ahead`}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm">
-                  {formatWaitMinutes(
-                    estimateWaitForPosition(
-                      entry?.position ?? 1,
-                      court?.num_courts ?? 1,
-                      appOccupiedCount,
-                      recentOccupied
-                    )
-                  )}{" "}
-                  estimated wait
-                </span>
-              </div>
-              {entry?.party_size && entry.party_size > 1 && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Users className="w-4 h-4" />
-                  <span className="text-sm">{entry.party_size} players</span>
-                </div>
-              )}
-            </div>
+        {(isWaiting || isNotified) && entry && (
+          <div className="w-full space-y-8 slide-up">
+            {(() => {
+              const waitMins = estimateWaitForPosition(
+                entry.position ?? 1,
+                court?.num_courts ?? 1,
+                appOccupiedCount,
+                recentOccupied
+              );
+              const progress = Math.min(
+                95,
+                Math.max(10, 100 - (entry.position ?? 1) * 20)
+              );
+              return (
+                <>
+                  <div className="text-center">
+                    <div className="relative inline-block mb-4">
+                      <div className="absolute inset-0 bg-primary-container/20 rounded-full blur-3xl scale-150 pulse-dot" />
+                      <h2 className="text-[72px] leading-none font-bold text-primary-fixed relative">
+                        {waitMins}
+                        <span className="text-2xl ml-2 font-semibold">min</span>
+                      </h2>
+                    </div>
+                    <p className="label-caps text-on-surface-variant tracking-widest">
+                      Estimated Wait Time
+                    </p>
+                  </div>
 
-            <Separator className="opacity-30" />
+                  <div className="bg-surface-container-high/60 backdrop-blur-md px-6 py-2.5 rounded-full border border-white/10 flex items-center justify-center gap-2 mx-auto w-fit">
+                    <span className="w-2 h-2 rounded-full bg-primary-fixed animate-pulse" />
+                    <span className="text-lg font-semibold text-primary">
+                      Position #{entry.position}
+                    </span>
+                    <span className="text-sm text-on-surface-variant">in line</span>
+                  </div>
+
+                  <div className="w-full space-y-4">
+                    <div className="relative h-1 bg-surface-container-highest rounded-full overflow-hidden">
+                      <div
+                        className="absolute left-0 top-0 bottom-0 progress-gradient transition-all duration-1000"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="text-center text-sm text-on-surface-variant">
+                      {queueAhead === 0
+                        ? "You're up next when a court opens"
+                        : `${queueAhead} ${queueAhead === 1 ? "player" : "players"} ahead of you`}
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
 
             {entry && (
               <InviteBox
@@ -573,15 +568,19 @@ export default function QueuePage() {
               />
             )}
 
-            <Button
-              variant="ghost"
-              className="w-full h-12 rounded-2xl gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={handleLeave}
-              disabled={leaveLoading}
-            >
-              <LogOut className="w-4 h-4" />
-              {leaveLoading ? "Leaving…" : "Leave Queue"}
-            </Button>
+            <div className="fixed bottom-0 left-0 right-0 z-30 p-container-padding pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+              <div className="max-w-md mx-auto glass-panel rounded-3xl p-4">
+                <Button
+                  variant="ghost"
+                  className="w-full h-12 rounded-2xl gap-2 text-error hover:text-error hover:bg-error-container/20 label-caps"
+                  onClick={handleLeave}
+                  disabled={leaveLoading}
+                >
+                  <LogOut className="w-4 h-4" />
+                  {leaveLoading ? "Leaving…" : "Leave Queue"}
+                </Button>
+              </div>
+            </div>
           </div>
         )}
 

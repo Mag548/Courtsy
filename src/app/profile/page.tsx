@@ -3,33 +3,26 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { Navbar } from "@/components/layout/navbar";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { AppHeader } from "@/components/layout/app-header";
+import { BottomNav } from "@/components/layout/bottom-nav";
+import { AdminCourtClearPanel } from "@/components/admin/admin-court-clear-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MaterialIcon } from "@/components/ui/material-icon";
 import { toast } from "sonner";
-import { Loader2, User, History, Settings } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import type { QueueEntry } from "@/lib/supabase/types";
 import { formatDistanceToNow } from "date-fns";
 import { isAdminEmail } from "@/lib/admin";
-import { AdminCourtClearPanel } from "@/components/admin/admin-court-clear-panel";
 
 export default function ProfilePage() {
   const { user, profile, loading, updateProfile, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const defaultTab = searchParams.get("tab") ?? "profile";
+  const activeTab = searchParams.get("tab") ?? "settings";
 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -41,16 +34,16 @@ export default function ProfilePage() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth");
-    }
+    if (!loading && !user) router.push("/auth");
   }, [user, loading, router]);
 
   useEffect(() => {
     if (profile) {
       setForm({
         full_name: profile.full_name ?? "",
-        preferred_sport: (profile.preferred_sport as "tennis" | "pickleball" | "both") ?? "both",
+        preferred_sport:
+          (profile.preferred_sport as "tennis" | "pickleball" | "both") ??
+          "both",
       });
     }
   }, [profile]);
@@ -65,23 +58,25 @@ export default function ProfilePage() {
       .limit(20);
 
     if (data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setHistory((data as any[]).map((entry) => ({
-        id: entry.id,
-        queue_id: entry.queue_id,
-        user_id: entry.user_id,
-        party_size: entry.party_size,
-        sport: entry.sport,
-        position: entry.position,
-        status: entry.status,
-        joined_at: entry.joined_at,
-        notified_at: entry.notified_at,
-        started_playing_at: entry.started_playing_at,
-        invite_code: entry.invite_code ?? null,
-        extended_at: entry.extended_at ?? null,
-        assigned_court_number: entry.assigned_court_number ?? null,
-        court: entry.queue?.court ?? null,
-      })));
+      setHistory(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (data as any[]).map((entry) => ({
+          id: entry.id,
+          queue_id: entry.queue_id,
+          user_id: entry.user_id,
+          party_size: entry.party_size,
+          sport: entry.sport,
+          position: entry.position,
+          status: entry.status,
+          joined_at: entry.joined_at,
+          notified_at: entry.notified_at,
+          started_playing_at: entry.started_playing_at,
+          invite_code: entry.invite_code ?? null,
+          extended_at: entry.extended_at ?? null,
+          assigned_court_number: entry.assigned_court_number ?? null,
+          court: entry.queue?.court ?? null,
+        }))
+      );
     }
   }, [user, supabase]);
 
@@ -104,8 +99,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-on-surface-variant" />
       </div>
     );
   }
@@ -113,200 +108,179 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const isAdmin = isAdminEmail(user.email);
+  const bottomActive =
+    activeTab === "history" ? "activity" : ("settings" as const);
 
-  const statusColors = {
-    waiting: "bg-yellow-500/20 text-yellow-400",
-    notified: "bg-blue-500/20 text-blue-400",
-    playing: "bg-green-500/20 text-green-400",
-    expired: "bg-red-500/20 text-red-400",
-    left: "bg-muted text-muted-foreground",
+  const statusLabel: Record<string, string> = {
+    waiting: "WAITING",
+    notified: "READY",
+    playing: "PLAYING",
+    expired: "EXPIRED",
+    left: "LEFT",
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-2xl mx-auto p-4 pt-8 space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Avatar className="w-16 h-16">
-            <AvatarImage src={profile?.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/20 text-primary text-xl">
-              {profile?.full_name?.[0]?.toUpperCase() ??
-                user.email?.[0]?.toUpperCase() ??
-                "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-xl font-bold">
-              {profile?.full_name ?? "Player"}
-            </h1>
-            <p className="text-sm text-muted-foreground">{user.email}</p>
-            {profile?.preferred_sport && (
-              <Badge variant="outline" className="mt-1 text-xs">
-                {profile.preferred_sport === "both"
-                  ? "🎾🏓 Tennis & Pickleball"
-                  : profile.preferred_sport === "tennis"
-                  ? "🎾 Tennis"
-                  : "🏓 Pickleball"}
-              </Badge>
-            )}
+    <div className="min-h-screen bg-background pb-32">
+      <AppHeader />
+
+      <main className="max-w-2xl mx-auto px-container-padding pt-28 space-y-section-gap slide-up">
+        {/* Profile hero */}
+        <section className="glass-panel p-6 sm:p-8 rounded-[32px] relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative shrink-0">
+              <div className="w-28 h-28 rounded-3xl border-2 border-primary-container p-1 overflow-hidden">
+                <Avatar className="w-full h-full rounded-[20px]">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-surface-container-high text-primary-fixed text-2xl">
+                    {profile?.full_name?.[0]?.toUpperCase() ??
+                      user.email?.[0]?.toUpperCase() ??
+                      "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+            <div className="text-center sm:text-left flex-1">
+              <h2 className="text-2xl font-semibold text-primary">
+                {profile?.full_name ?? "Player"}
+              </h2>
+              <p className="text-sm text-on-surface-variant mt-1">{user.email}</p>
+              {profile?.preferred_sport && (
+                <p className="text-sm text-on-surface-variant mt-2 flex items-center justify-center sm:justify-start gap-2">
+                  <MaterialIcon name="sports_score" className="text-primary-fixed" />
+                  {profile.preferred_sport === "both"
+                    ? "Tennis & Pickleball"
+                    : profile.preferred_sport.charAt(0).toUpperCase() +
+                      profile.preferred_sport.slice(1)}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        </section>
 
-        <Tabs defaultValue={defaultTab}>
-          <TabsList className="w-full bg-muted/50">
-            <TabsTrigger value="profile" className="flex-1">
-              <User className="w-4 h-4 mr-2" />
-              Profile
-            </TabsTrigger>
-            <TabsTrigger value="history" className="flex-1">
-              <History className="w-4 h-4 mr-2" />
-              History
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex-1">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="profile">
-            <Card className="border-border/50 bg-card/50">
-              <CardHeader>
-                <CardTitle>Edit Profile</CardTitle>
-                <CardDescription>Update your personal information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSave} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label>Full Name</Label>
-                    <Input
-                      value={form.full_name}
-                      onChange={(e) =>
-                        setForm({ ...form, full_name: e.target.value })
-                      }
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Preferred Sport</Label>
-                    <div className="flex gap-2">
-                      {(
-                        [
-                          { value: "tennis", label: "🎾 Tennis" },
-                          { value: "pickleball", label: "🏓 Pickleball" },
-                          { value: "both", label: "Both" },
-                        ] as const
-                      ).map((opt) => (
-                        <Button
-                          key={opt.value}
-                          type="button"
-                          variant={
-                            form.preferred_sport === opt.value
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          className="flex-1"
-                          onClick={() =>
-                            setForm({ ...form, preferred_sport: opt.value })
-                          }
-                        >
-                          {opt.label}
-                        </Button>
-                      ))}
+        {/* Activity */}
+        {(activeTab === "history" || activeTab === "profile") && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
+                <MaterialIcon name="history" className="text-primary-fixed" />
+                Recent Activity
+              </h3>
+            </div>
+            {history.length === 0 ? (
+              <div className="glass-card rounded-2xl p-8 text-center text-on-surface-variant text-sm">
+                No history yet. Join a queue to get started!
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {history.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="glass-card p-4 rounded-2xl flex items-center gap-4 hover:bg-surface-bright/20 transition-all"
+                  >
+                    <div className="w-11 h-11 bg-primary-container/10 rounded-xl flex items-center justify-center text-primary-fixed shrink-0">
+                      <MaterialIcon
+                        name={
+                          entry.sport === "pickleball"
+                            ? "sports_volleyball"
+                            : "sports_tennis"
+                        }
+                      />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-primary truncate">
+                        {entry.court?.name ?? "Unknown Court"}
+                      </h4>
+                      <p className="text-sm text-on-surface-variant">
+                        {entry.joined_at
+                          ? formatDistanceToNow(new Date(entry.joined_at), {
+                              addSuffix: true,
+                            })
+                          : ""}
+                        {entry.assigned_court_number
+                          ? ` · Court ${entry.assigned_court_number}`
+                          : ""}
+                      </p>
+                    </div>
+                    <span className="label-caps text-primary-fixed shrink-0">
+                      {statusLabel[entry.status] ?? entry.status}
+                    </span>
                   </div>
-                  <Button type="submit" className="w-full" disabled={saving}>
-                    {saving ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : null}
-                    Save Changes
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-
-            {isAdmin && (
-              <div className="mt-4">
-                <AdminCourtClearPanel />
+                ))}
               </div>
             )}
-          </TabsContent>
+          </section>
+        )}
 
-          <TabsContent value="history">
-            <Card className="border-border/50 bg-card/50">
-              <CardHeader>
-                <CardTitle>Queue History</CardTitle>
-                <CardDescription>Your recent court activity</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {history.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8 text-sm">
-                    No history yet. Join a queue to get started!
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {history.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="flex items-start justify-between p-3 rounded-lg bg-muted/30"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">
-                            {entry.court?.name ?? "Unknown Court"}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {entry.party_size > 1
-                              ? `${entry.party_size} players · `
-                              : ""}
-                            {entry.sport} ·{" "}
-                            {entry.joined_at ? formatDistanceToNow(new Date(entry.joined_at), {
-                              addSuffix: true,
-                            }) : ""}
-                          </p>
-                        </div>
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            statusColors[entry.status as keyof typeof statusColors] ?? "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          {entry.status}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card className="border-border/50 bg-card/50">
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                  <div>
-                    <p className="text-sm font-medium">Email</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    Verified
-                  </Badge>
+        {/* Settings */}
+        {(activeTab === "settings" || activeTab === "profile") && (
+          <section className="glass-panel p-6 rounded-3xl space-y-5">
+            <h3 className="text-lg font-semibold text-primary">App Preferences</h3>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-on-surface-variant">Full Name</Label>
+                <Input
+                  value={form.full_name}
+                  onChange={(e) =>
+                    setForm({ ...form, full_name: e.target.value })
+                  }
+                  placeholder="Your name"
+                  className="bg-white/5 border-white/10 rounded-xl h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-on-surface-variant">Primary Sport</Label>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      { value: "tennis", label: "Tennis" },
+                      { value: "pickleball", label: "Pickleball" },
+                      { value: "both", label: "Both" },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() =>
+                        setForm({ ...form, preferred_sport: opt.value })
+                      }
+                      className={`flex-1 py-2.5 rounded-xl label-caps transition-all ${
+                        form.preferred_sport === opt.value
+                          ? "bg-primary-container text-on-primary-container"
+                          : "bg-white/5 text-on-surface-variant border border-white/10"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
-                <Button
-                  variant="destructive"
-                  className="w-full"
-                  onClick={signOut}
-                >
-                  Sign Out
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-2xl bg-primary-container text-on-primary-container font-semibold hover:brightness-110"
+                disabled={saving}
+              >
+                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Save Changes
+              </Button>
+            </form>
+            <hr className="border-white/5" />
+            <button
+              type="button"
+              onClick={signOut}
+              className="w-full flex items-center gap-3 py-2 text-error hover:opacity-80 transition-opacity"
+            >
+              <MaterialIcon name="logout" />
+              <span className="text-base">Log Out</span>
+            </button>
+          </section>
+        )}
+
+        {isAdmin && activeTab !== "history" && (
+          <AdminCourtClearPanel />
+        )}
       </main>
+
+      <BottomNav active={bottomActive} showFab={false} />
     </div>
   );
 }
