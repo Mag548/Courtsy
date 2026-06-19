@@ -31,7 +31,7 @@ import { estimateWaitForPosition, formatWaitMinutes } from "@/lib/court-traffic"
 import {
   countActiveSessions,
   getOpenTimerOrder,
-  openPlayMessage,
+  noWaitTimerMessage,
   isSessionActive,
 } from "@/lib/court-availability";
 
@@ -383,7 +383,7 @@ export default function QueuePage() {
   }
 
   const isPlaying = entry?.status === "playing";
-  const isOpenPlay = isPlaying && session && !session.expires_at;
+  const isUntimedSession = isPlaying && session && !session.expires_at;
   const isTimedPlay = isPlaying && session?.expires_at;
   const isNotified = entry?.status === "notified";
   const isWaiting = entry?.status === "waiting";
@@ -481,8 +481,8 @@ export default function QueuePage() {
           )}
         </Badge>
 
-        {/* ── Open play (no timer yet) ── */}
-        {isOpenPlay && entry && (
+        {/* ── No timer while queue is empty ── */}
+        {isUntimedSession && entry && (
           <div className="w-full space-y-6">
             <div className="frosted-surface rounded-3xl p-8 flex flex-col items-center gap-3 text-center">
               <p className="text-sm text-muted-foreground uppercase tracking-widest">
@@ -493,7 +493,7 @@ export default function QueuePage() {
               </p>
               <p className="text-sm font-semibold text-green-400">Enjoy your time!</p>
               <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
-                {openPlayMessage(
+                {noWaitTimerMessage(
                   getOpenTimerOrder(activeSessions, entry.id)
                 )}
               </p>

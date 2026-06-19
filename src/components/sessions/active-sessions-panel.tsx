@@ -272,7 +272,7 @@ export function ActiveSessionsPanel() {
                   <>
                     <Trophy className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
-                      Court {item.session.court_number ?? item.entry.assigned_court_number ?? "—"} · No timer yet
+                      Court {item.session.court_number ?? item.entry.assigned_court_number ?? "—"} · No time limit
                     </span>
                   </>
                 )}

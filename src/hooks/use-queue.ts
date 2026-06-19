@@ -120,7 +120,7 @@ export function useQueue() {
 
         if (payload?.assigned && payload.court_number) {
           toast.success(
-            `You're on Court ${payload.court_number}! Enjoy — your timer starts when someone joins.`
+            `You're on Court ${payload.court_number}! No time limit while nobody is waiting in line.`
           );
         } else {
           toast.success(

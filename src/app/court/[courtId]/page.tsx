@@ -31,12 +31,12 @@ import {
   countActiveSessions,
   getAvailableCourts,
   getOpenTimerOrder,
-  openPlayMessage,
+  noWaitTimerMessage,
   isSessionActive,
 } from "@/lib/court-availability";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type PageState = "loading" | "auth" | "queue" | "on_court_open" | "on_court_timed" | "join";
+type PageState = "loading" | "auth" | "queue" | "on_court_untimed" | "on_court_timed" | "join";
 
 function CountdownTimer({ expiresAt }: { expiresAt: string }) {
   const [display, setDisplay] = useState("");
@@ -157,7 +157,7 @@ export default function CourtScanPage() {
     if (userEntry?.status === "playing") {
       const session = activeSessions.find((s) => s.queue_entry_id === userEntry.id);
       setPageState(
-        session?.expires_at ? "on_court_timed" : "on_court_open"
+        session?.expires_at ? "on_court_timed" : "on_court_untimed"
       );
     } else if (userEntry) {
       setPageState("queue");
@@ -274,8 +274,8 @@ export default function CourtScanPage() {
           </div>
         )}
 
-        {/* ON COURT — open-ended (no timer yet) */}
-        {pageState === "on_court_open" && userEntry && (
+        {/* ON COURT — no timer while queue is empty */}
+        {pageState === "on_court_untimed" && userEntry && (
           <div className="space-y-4">
             <div className="rounded-3xl bg-green-500/10 border border-green-500/25 p-6 text-center space-y-2">
               <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">
@@ -286,7 +286,7 @@ export default function CourtScanPage() {
               </p>
               <p className="text-sm font-semibold text-green-400">Enjoy your time!</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                {openPlayMessage(
+                {noWaitTimerMessage(
                   getOpenTimerOrder(activeSessions, userEntry.id)
                 )}
               </p>
