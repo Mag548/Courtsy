@@ -22,7 +22,7 @@ export default function ScanPage() {
           <div className="min-w-0">
             <h1 className="font-bold text-base leading-tight">Scan court sign</h1>
             <p className="text-xs text-muted-foreground truncate">
-              Scan the QR code posted at the park
+              Hold it up to the QR code on the CourtQueue sign by the court
             </p>
           </div>
         </div>

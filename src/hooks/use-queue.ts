@@ -5,6 +5,26 @@ import { createClient } from "@/lib/supabase/client";
 import type { QueueEntry } from "@/lib/supabase/types";
 import { toast } from "sonner";
 
+const ACTIVE_QUEUE_STATUSES = ["waiting", "notified", "playing"] as const;
+
+type ActiveQueueEntry = QueueEntry & {
+  queue: { court_id: string; court: { id: string; name: string } | null } | null;
+};
+
+async function getUserActiveQueueEntries(
+  supabase: ReturnType<typeof createClient>,
+  userId: string
+): Promise<ActiveQueueEntry[]> {
+  const { data, error } = await supabase
+    .from("queue_entries")
+    .select("*, queue:queues(court_id, court:courts(id, name))")
+    .eq("user_id", userId)
+    .in("status", [...ACTIVE_QUEUE_STATUSES]);
+
+  if (error) throw error;
+  return (data ?? []) as ActiveQueueEntry[];
+}
+
 export function useQueue() {
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
@@ -27,17 +47,24 @@ export function useQueue() {
 
         if (queueError || !queue) throw new Error("Queue not found");
 
-        // Check if already in queue
-        const { data: existing } = await supabase
-          .from("queue_entries")
-          .select("id")
-          .eq("queue_id", queue.id)
-          .eq("user_id", userId)
-          .eq("status", "waiting")
-          .maybeSingle();
-
-        if (existing) {
+        const activeEntries = await getUserActiveQueueEntries(supabase, userId);
+        const sameCourtEntry = activeEntries.find(
+          (entry) => entry.queue?.court_id === courtId
+        );
+        if (sameCourtEntry) {
           toast.info("You're already in this queue!");
+          return sameCourtEntry;
+        }
+
+        const otherCourtEntry = activeEntries.find(
+          (entry) => entry.queue?.court_id !== courtId
+        );
+        if (otherCourtEntry) {
+          const courtName =
+            otherCourtEntry.queue?.court?.name ?? "another court";
+          toast.error(
+            `You're already in the queue at ${courtName}. Leave that queue before joining another.`
+          );
           return null;
         }
 
@@ -63,7 +90,15 @@ export function useQueue() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          if (error.code === "23505") {
+            toast.error(
+              "You're already in a queue at another court. Leave it before joining another."
+            );
+            return null;
+          }
+          throw error;
+        }
 
         toast.success(`You're #${position} in the queue!`);
         return entry;
