@@ -18,26 +18,160 @@ interface CourtMapProps {
   onDirectionsClear?: () => void;
 }
 
-function getMarkerSvg(type: "tennis" | "pickleball" | "both", selected: boolean) {
-  const size = selected ? 40 : 32;
-  const colors: Record<string, string> = {
-    tennis: "#22c55e",
-    pickleball: "#3b82f6",
-    both: "#a855f7",
-  };
-  const labels: Record<string, string> = {
-    tennis: "T",
-    pickleball: "P",
-    both: "T/P",
-  };
-  const color = colors[type] ?? "#22c55e";
-  const label = labels[type] ?? "?";
+type CourtType = "tennis" | "pickleball" | "both";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size * 1.25}" viewBox="0 0 32 40">
-    <path d="M16 0C9.4 0 4 5.4 4 12c0 9 12 28 12 28S28 21 28 12C28 5.4 22.6 0 16 0z" fill="${color}" opacity="${selected ? 1 : 0.9}"/>
-    <circle cx="16" cy="12" r="7" fill="white" opacity="0.25"/>
-    <text x="16" y="16" text-anchor="middle" font-size="${label.length > 1 ? 7 : 10}" fill="white" font-family="Arial" font-weight="bold">${label}</text>
+const PADDLE_GRADIENTS: Record<CourtType, [string, string]> = {
+  tennis: ["hsl(142 72% 54%)", "hsl(155 80% 36%)"],
+  pickleball: ["hsl(217 91% 60%)", "hsl(224 76% 48%)"],
+  both: ["hsl(271 81% 56%)", "hsl(262 83% 46%)"],
+};
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/"/g, "&quot;");
+}
+
+function truncateName(name: string, max = 24): string {
+  return name.length > max ? `${name.slice(0, max - 1)}…` : name;
+}
+
+function getAvailabilityLabel(court: CourtWithQueue): {
+  text: string;
+  busy: boolean;
+} {
+  const waiting =
+    court.queue?.queue_entries?.filter((e) => e.status === "waiting")
+      .length ?? 0;
+  const available = getAvailableCourts(
+    court.num_courts,
+    court.active_sessions ?? [],
+    0
+  );
+  const openLabel = `${formatAvailableCourts(available, court.num_courts)} open`;
+  if (waiting > 0) {
+    return { text: `${openLabel} · ${waiting} waiting`, busy: true };
+  }
+  if (available === 0) {
+    return { text: `${openLabel} · all full`, busy: true };
+  }
+  return { text: openLabel, busy: false };
+}
+
+function getPaddleSvg(type: CourtType, gradId: string): string {
+  const [start, end] = PADDLE_GRADIENTS[type] ?? PADDLE_GRADIENTS.tennis;
+  return `<svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="16" cy="14" rx="11" ry="12" fill="url(#${gradId})"/>
+    <ellipse cx="16" cy="14" rx="7" ry="8" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+    <line x1="9" y1="8" x2="23" y2="20" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+    <line x1="9" y1="20" x2="23" y2="8" stroke="rgba(255,255,255,0.12)" stroke-width="0.8"/>
+    <rect x="14.5" y="25" width="3" height="9" rx="1.5" fill="${start}"/>
+    <circle cx="27" cy="8" r="3" fill="${type === "pickleball" ? "hsl(199 89% 68%)" : "hsl(90 80% 60%)"}" opacity="0.95"/>
+    <defs>
+      <linearGradient id="${gradId}" x1="5" y1="3" x2="27" y2="25" gradientUnits="userSpaceOnUse">
+        <stop stop-color="${start}"/>
+        <stop offset="1" stop-color="${end}"/>
+      </linearGradient>
+    </defs>
   </svg>`;
+}
+
+function createPaddleMarkerElement(
+  court: CourtWithQueue,
+  isSelected: boolean,
+  onClick: () => void
+): HTMLDivElement {
+  const type = (court.court_type as CourtType) ?? "tennis";
+  const gradId = `paddle-${court.id.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const availability = getAvailabilityLabel(court);
+
+  const wrapper = document.createElement("div");
+  wrapper.className = `court-map-pin${isSelected ? " is-selected" : ""}`;
+  wrapper.setAttribute("role", "button");
+  wrapper.setAttribute("tabindex", "0");
+  wrapper.setAttribute(
+    "aria-label",
+    `${court.name}, ${availability.text}`
+  );
+
+  wrapper.innerHTML = `
+    <div class="court-map-pin__inner">
+      <div class="court-map-pin__card">
+        <p class="court-map-pin__name">${escapeHtml(truncateName(court.name))}</p>
+        <p class="court-map-pin__meta${availability.busy ? " is-busy" : ""}">${escapeHtml(availability.text)}</p>
+      </div>
+      <div class="court-map-pin__paddle court-map-pin__paddle--${type}">
+        ${getPaddleSvg(type, gradId)}
+      </div>
+    </div>
+  `;
+
+  wrapper.addEventListener("click", (event) => {
+    event.stopPropagation();
+    onClick();
+  });
+
+  wrapper.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onClick();
+    }
+  });
+
+  wrapper.addEventListener(
+    "touchstart",
+    () => {
+      wrapper.classList.add("is-touch-active");
+    },
+    { passive: true }
+  );
+
+  wrapper.addEventListener("touchend", () => {
+    window.setTimeout(() => {
+      if (!wrapper.classList.contains("is-selected")) {
+        wrapper.classList.remove("is-touch-active");
+      }
+    }, 1800);
+  });
+
+  return wrapper;
+}
+
+function createPaddleOverlay(
+  position: google.maps.LatLngLiteral,
+  div: HTMLDivElement
+): google.maps.OverlayView {
+  class CourtPaddleOverlay extends google.maps.OverlayView {
+    private position: google.maps.LatLng;
+
+    constructor(pos: google.maps.LatLngLiteral, element: HTMLDivElement) {
+      super();
+      this.position = new google.maps.LatLng(pos.lat, pos.lng);
+      this.div = element;
+    }
+
+    div: HTMLDivElement;
+
+    onAdd() {
+      this.getPanes()?.overlayMouseTarget.appendChild(this.div);
+    }
+
+    draw() {
+      const projection = this.getProjection();
+      if (!projection) return;
+      const point = projection.fromLatLngToDivPixel(this.position);
+      if (!point) return;
+      this.div.style.left = `${point.x}px`;
+      this.div.style.top = `${point.y}px`;
+    }
+
+    onRemove() {
+      this.div.remove();
+    }
+  }
+
+  return new CourtPaddleOverlay(position, div);
 }
 
 const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
@@ -53,14 +187,25 @@ const DARK_MAP_STYLES: google.maps.MapTypeStyle[] = [
   { featureType: "transit", elementType: "labels", stylers: [{ visibility: "off" }] },
 ];
 
-export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, mapCenter, directionsTarget, onDirectionsClear }: CourtMapProps) {
+export function CourtMap({
+  courts,
+  selectedCourt,
+  onCourtSelect,
+  userLocation,
+  mapCenter,
+  directionsTarget,
+  onDirectionsClear,
+}: CourtMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const markersRef = useRef<Map<string, google.maps.Marker>>(new Map());
+  const overlaysRef = useRef<Map<string, google.maps.OverlayView>>(new Map());
   const userMarkerRef = useRef<google.maps.Marker | null>(null);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [routeInfo, setRouteInfo] = useState<{ duration: string; distance: string } | null>(null);
+  const [routeInfo, setRouteInfo] = useState<{
+    duration: string;
+    distance: string;
+  } | null>(null);
 
   const initMap = useCallback(async () => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -69,7 +214,7 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
     if (!apiKey || apiKey === "YOUR_GOOGLE_MAPS_API_KEY") return;
 
     setOptions({ key: apiKey });
-    const { Map } = await importLibrary("maps") as google.maps.MapsLibrary;
+    const { Map } = (await importLibrary("maps")) as google.maps.MapsLibrary;
 
     const center = userLocation ?? { lat: 40.7128, lng: -74.006 };
 
@@ -95,40 +240,24 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
   useEffect(() => {
     if (!mapLoaded || !mapInstanceRef.current) return;
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current.clear();
+    overlaysRef.current.forEach((overlay) => overlay.setMap(null));
+    overlaysRef.current.clear();
 
     courts.forEach((court) => {
-      const queueLength =
-        court.queue?.queue_entries?.filter((e) => e.status === "waiting").length ?? 0;
       const isSelected = selectedCourt?.id === court.id;
+      const element = createPaddleMarkerElement(court, isSelected, () =>
+        onCourtSelect(court)
+      );
 
-      const iconSvg = getMarkerSvg(court.court_type as "tennis" | "pickleball" | "both", isSelected);
-      const iconSize = isSelected ? 40 : 32;
-
-      const marker = new google.maps.Marker({
-        position: { lat: court.latitude, lng: court.longitude },
-        map: mapInstanceRef.current!,
-        title: court.name,
-        icon: {
-          url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(iconSvg),
-          scaledSize: new google.maps.Size(iconSize, iconSize * 1.25),
-          anchor: new google.maps.Point(iconSize / 2, iconSize * 1.25),
-        },
-        animation: isSelected ? google.maps.Animation.BOUNCE : undefined,
-        label:
-          queueLength > 0
-            ? { text: String(queueLength), color: "white", fontSize: "10px", fontWeight: "bold" }
-            : undefined,
-        zIndex: isSelected ? 1000 : 1,
-      });
-
-      marker.addListener("click", () => onCourtSelect(court));
-      markersRef.current.set(court.id, marker);
+      const overlay = createPaddleOverlay(
+        { lat: court.latitude, lng: court.longitude },
+        element
+      );
+      overlay.setMap(mapInstanceRef.current);
+      overlaysRef.current.set(court.id, overlay);
     });
   }, [courts, mapLoaded, selectedCourt, onCourtSelect]);
 
-  // User location blue dot
   useEffect(() => {
     if (!mapLoaded || !mapInstanceRef.current || !userLocation) return;
 
@@ -146,7 +275,9 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
         map: mapInstanceRef.current,
         title: "Your location",
         icon: {
-          url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(userDotSvg),
+          url:
+            "data:image/svg+xml;charset=UTF-8," +
+            encodeURIComponent(userDotSvg),
           scaledSize: new google.maps.Size(20, 20),
           anchor: new google.maps.Point(10, 10),
         },
@@ -155,7 +286,6 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
     }
   }, [userLocation, mapLoaded]);
 
-  // Pan to selected court
   useEffect(() => {
     if (selectedCourt && mapInstanceRef.current) {
       mapInstanceRef.current.panTo({
@@ -166,16 +296,14 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
     }
   }, [selectedCourt]);
 
-  // Pan to user location when it first arrives
   useEffect(() => {
     if (userLocation && mapInstanceRef.current && !selectedCourt) {
       mapInstanceRef.current.panTo(userLocation);
       mapInstanceRef.current.setZoom(13);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userLocation]);
 
-  // Pan to place searched via PlacesSearch
   useEffect(() => {
     if (mapCenter && mapInstanceRef.current) {
       mapInstanceRef.current.panTo(mapCenter);
@@ -183,11 +311,9 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
     }
   }, [mapCenter]);
 
-  // ── Directions ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!mapLoaded || !mapInstanceRef.current) return;
 
-    // Clear existing route
     if (directionsRendererRef.current) {
       directionsRendererRef.current.setMap(null);
       directionsRendererRef.current = null;
@@ -254,7 +380,6 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
           </p>
           <div className="mt-4 space-y-1.5 max-h-80 overflow-y-auto">
             {courts.map((court) => {
-              const qLen = court.queue?.queue_entries?.filter((e) => e.status === "waiting").length ?? 0;
               const available = getAvailableCourts(
                 court.num_courts,
                 court.active_sessions ?? [],
@@ -272,14 +397,10 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium truncate">{court.name}</span>
-                    {qLen > 0 && (
-                      <span className="text-xs text-primary ml-2 shrink-0">
-                        {qLen} waiting
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5 capitalize">
-                    {court.court_type} · {formatAvailableCourts(available, court.num_courts)} available
+                    {court.court_type} ·{" "}
+                    {formatAvailableCourts(available, court.num_courts)} available
                   </p>
                 </button>
               );
@@ -294,7 +415,6 @@ export function CourtMap({ courts, selectedCourt, onCourtSelect, userLocation, m
     <div className="relative w-full h-full">
       <div ref={mapRef} className="w-full h-full" />
 
-      {/* Route info + clear button */}
       {directionsTarget && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 frosted-surface rounded-2xl px-4 py-2.5 shadow-xl border border-white/[0.08]">
           <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
