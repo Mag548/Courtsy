@@ -16,7 +16,7 @@ export function saveMobileOAuthState(state: MobileOAuthState) {
 }
 
 export function consumeMobileOAuthState(): MobileOAuthState | null {
-  if (typeof window === "undefined" || window.innerWidth >= 768) return null;
+  if (typeof window === "undefined") return null;
   const raw = sessionStorage.getItem(MOBILE_OAUTH_KEY);
   if (!raw) return null;
   sessionStorage.removeItem(MOBILE_OAUTH_KEY);

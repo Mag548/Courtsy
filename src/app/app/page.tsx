@@ -32,8 +32,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-import { consumeMobileOAuthState } from "@/lib/mobile-oauth";
-import { useIsMobile } from "@/hooks/use-is-mobile";
+import { consumeMobileOAuthState, MOBILE_OAUTH_KEY } from "@/lib/mobile-oauth";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getDistanceKm(lat1: number, lng1: number, lat2: number, lng2: number) {
@@ -76,9 +75,15 @@ export default function HomePage() {
   const [mobileTab, setMobileTab] = useState<"map" | "courts" | "active" | "account">("courts");
   const [mobileSheet, setMobileSheet] = useState<"hidden" | "peek" | "open">("peek");
   const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [forceMobileLayout, setForceMobileLayout] = useState(false);
-  const { isMobile, ready: layoutReady } = useIsMobile();
-  const showMobile = forceMobileLayout || !layoutReady || isMobile;
+  // Start as `true` (mobile) — safe SSR default; effect corrects for desktop.
+  // After Google OAuth the sessionStorage key forces mobile so there's never
+  // a moment where the desktop layout briefly mounts on a phone.
+  const [showMobile, setShowMobile] = useState(() => {
+    if (typeof window === "undefined") return true; // SSR
+    if (typeof sessionStorage !== "undefined" &&
+        sessionStorage.getItem(MOBILE_OAUTH_KEY)) return true; // OAuth return
+    return window.innerWidth < 768;
+  });
 
   // Drag gesture state for bottom sheet
   const dragStartY = useRef<number | null>(null);
@@ -182,35 +187,44 @@ export default function HomePage() {
   };
 
   // Auto-open sheet when court is selected on mobile
+  // Auto-open sheet when a court is selected on mobile
   useEffect(() => {
-    if (selectedCourt && showMobile) {
-      setMobileSheet("open");
-    }
+    if (selectedCourt && showMobile) setMobileSheet("open");
   }, [selectedCourt, showMobile]);
 
-  // Restore mobile layout after Google OAuth (session survives full page reload)
+  // ── Layout detection + OAuth restore ──────────────────────────────────────
+  // Runs once on mount: corrects layout for desktop, restores state after OAuth.
   useEffect(() => {
+    // Sync viewport (corrects desktop users from the mobile SSR default)
+    const mobile = window.innerWidth < 768;
+    setShowMobile(mobile);
+
+    // Restore tab/sheet after Google OAuth redirect
     const saved = consumeMobileOAuthState();
     if (saved) {
-      setForceMobileLayout(true);
       setMobileTab(saved.tab);
       setMobileSheet(saved.sheet === "hidden" ? "peek" : saved.sheet);
       setAuthModalOpen(false);
     }
+
+    // Keep the correct layout when window is resized (e.g. DevTools)
+    const mq = window.matchMedia("(max-width: 767px)");
+    const onChange = (e: MediaQueryListEvent) => setShowMobile(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep mobile layout stable after email sign-in (no redirect)
+  // Close auth modal and reset sheet on email sign-in (no redirect involved)
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" || !showMobile) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" || window.innerWidth >= 768) return;
       setAuthModalOpen(false);
       setMobileTab((t) => (t === "map" ? "map" : "courts"));
       setMobileSheet((s) => (s === "hidden" ? "peek" : s));
     });
     return () => subscription.unsubscribe();
-  }, [supabase, showMobile]);
+  }, [supabase]);
 
   // ── Court list (shared by desktop sidebar + mobile sheet) ─────────────────
   const CourtList = () => (
